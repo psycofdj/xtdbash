@@ -1,0 +1,45 @@
+#!bin/bash
+
+export PROMPTCMD_COMMANDS=""
+export PROMPT_COMMAND="promptcmd_run"
+
+function __promptcmd_prompt_add_label() {
+  local l_label=$1; shift
+  if [ ! -z "${PROMPCMD_LABELS}" ]; then
+      PROMPTCMD_LABELS="${PROMPTCMD_LABELS};"
+  fi
+  PROMPTCMD_LABELS="${PROMPTCMD_LABELS}${l_label}"
+}
+
+function __promptcmd_update_git() {
+  local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [ ! -z "${l_branch}" ]; then
+      __promptcmd_prompt_add_label "git:${l_branch}"
+  fi
+}
+
+function promptcmd_enable_prompt() {
+  local l_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+  export PS1=""
+  export COLUMNS
+  export PROMPTCMD_LABELS=""
+  promptcmd_push "RET=\$? LC_ALL=C ${l_dir}/bin/prompt"
+}
+
+function promptcmd_enable_git() {
+  promptcmd_push "__promptcmd_update_git"
+}
+
+function promptcmd_push() {
+  local p_cmd=$1; shift
+  if [ -z "${PROMPTCMD_COMMANDS}" ]; then
+      PROMPTCMD_COMMANDS="${p_cmd}"
+  else
+    PROMPTCMD_COMMANDS="${PROMPTCMD_COMMANDS}; ${p_cmd}"
+  fi
+}
+
+function promptcmd_run() {
+  PROMPTCMD_LABELS=""
+  eval "${PROMPTCMD_COMMANDS}"
+}

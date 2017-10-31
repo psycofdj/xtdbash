@@ -1,0 +1,23 @@
+#!bin/bash
+
+# -- aliases -- #
+alias ssh='LC_ALL=C ssh'
+alias scp='LC_ALL=C scp'
+alias rm='rm -i'
+alias l='ls -c -h -l --color=auto'
+alias ll='l -a'
+alias p='pwd'
+alias h='cd ~'
+alias k='cd ..'
+alias e='TERM=xterm-256color emacs -nw --no-site-file'
+alias clean='rm -f *~ .*~ *.pyc *.pyo \#* .\#*'
+alias c='clear'
+alias ps='ps auxw  --sort=uid,pid,cmd'
+alias lps='COLUMNS=9999 ps auxw  --sort=uid,pid,cmd'
+alias rgrep='grep --color=always -n'
+alias mmake='make 2>&1 | more'
+alias sudo='sudo '
+
+function ergrep {
+  e $(\grep -n $@ | cut -d: -f1-2 | sort -u)
+}

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+export LIBLOADER_LIBS=""
+export LIBLOADER_FILES=""
+export LIBLOADER_VERBOSE=1
+
+function __libloader_error() {
+  local p_msg=$@;
+  echo >&2 "$(tput setaf 1)libloader error$(tput sgr0): ${p_msg}"
+}
+
+function __libloader_verbose() {
+  local p_msg=$@;
+
+  if [ "${LIBLOADER_VERBOSE}" == "1" ]; then
+      echo "$(tput setaf 3)libloader$(tput sgr0): ${p_msg}"
+  fi
+}
+
+function libloader_verbose_on() {
+  export LIBLOADER_VERBOSE="1"
+}
+
+function libloader_verbose_off() {
+  export LIBLOADER_VERBOSE="0"
+}
+
+function libloader_register_lib() {
+  local l_lib=$1; shift
+
+  __libloader_verbose "registering libary ${l_lib}"
+  if [ -z "${LIBLOADER_LIBS}" ]; then
+      LIBLOADER_LIBS="${l_lib}"
+  else
+    LIBLOADER_LIBS="${LIBLOADER_LIBS} ${l_lib}"
+  fi
+}
+
+function libloader_register_file() {
+  local l_file=$1; shift
+
+  __libloader_verbose "registering file ${l_file}"
+  if [ -z "${LIBLOADER_FILES}" ]; then
+      LIBLOADER_FILES="${l_file}"
+  else
+    LIBLOADER_FILES="${LIBLOADER_FILES} ${l_file}"
+  fi
+}
+
+function libloader_init() {
+  local l_libdir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+  local l_homedir="${HOME}"
+
+  for c_lib in $(echo ${LIBLOADER_LIBS}); do
+    local l_file="${l_libdir}/lib.${c_lib}"
+    if [ ! -f "${l_file}" ]; then
+        __libloader_error "unable to find libary ${c_lib} (${l_file})"
+        continue
+    fi
+    __libloader_verbose "loading library ${c_lib} from ${l_file}"
+    . ${l_file}
+  done
+
+  for c_file in $(echo ${LIBLOADER_FILES}); do
+    if [ ! -f "${c_file}" ]; then
+        __libloader_error "unable to find external libary ${c_file}"
+        continue
+    fi
+    __libloader_verbose "loading external file ${c_file}"
+    . ${c_file}
+  done
+
+  for c_file in $(ls ${l_homedir}/.bashrc.* 2>/dev/null); do
+    __libloader_verbose "loading personal file ${c_file}"
+    . ${c_file}
+  done
+}
+

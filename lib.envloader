@@ -1,0 +1,113 @@
+#!bin/bash
+
+declare -a __envloader_vars
+
+export ENVLOADER_VARIABLES=""
+export ENVLOADER_VERBOSE=1
+if [ -z "${BASE_PATH}" ]; then
+   export BASE_PATH=${PATH}
+fi
+
+function __envloader_error() {
+  local p_msg=$@;
+  echo >&2 "$(tput setaf 1)enloader error$(tput sgr0): ${p_msg}"
+}
+
+function __envloader_verbose() {
+  local p_msg=$@;
+
+  if [ "${ENVLOADER_VERBOSE}" == "1" ]; then
+      echo "$(tput setaf 3)envloader$(tput sgr0): ${p_msg}"
+  fi
+}
+
+function __envloader_export_file() {
+  local p_file=$1; shift
+
+  jq -r 'to_entries[] | "export \(.key)=\(.value);export \(.key)_origin='"${p_file}"'"' < ${p_file} 2>/dev/null || {
+    __envloader_error "malformed json file ${p_file}, ignored"
+  } | tr "\n" ";"
+}
+
+function __envloader_save_vars() {
+  local p_file=$1; shift
+
+  for c_var in $(cat "${p_file}" | jq -r 'to_entries[] | "\(.key)"' 2>/dev/null ); do
+    if [ -z "${ENVLOADER_VARIABLES}" ]; then
+        ENVLOADER_VARIABLES="${c_var}"
+    else
+      ENVLOADER_VARIABLES="${ENVLOADER_VARIABLES};${c_var}"
+    fi
+  done
+}
+
+function __envloader_is_safe() {
+  local p_file=$1; shift
+  local l_mode=$(stat --printf "%A" ${p_file})
+  local l_ow=${l_mode:8:1}
+
+  if [ "${l_ow}" != "-" ]; then
+      __envloader_verbose ${p_file} is not safe
+      return 1
+  fi
+
+  __envloader_verbose ${p_file} is safe
+  return 0
+}
+
+function envloader_verbose_on() {
+  export ENVLOADER_VERBOSE="1"
+}
+
+function envloader_verbose_off() {
+  export ENVLOADER_VERBOSE="0"
+}
+
+function envloader_list() {
+  __envloader_verbose "listing all variables..."
+  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
+    local l_originName="${c_var}_origin"
+    local l_origin="${!l_originName}"
+    local l_val="${!c_var}"
+    printf -- "-> $(tput setaf 1)%10s$(tput sgr0) = $(tput setaf 3)%s$(tput sgr0) ($(tput bold)%s$(tput sgr0))\n" "${c_var}" "${l_val}" "${l_origin}"
+  done
+}
+
+function envloader_unload() {
+  __envloader_verbose "unloading all variables variables..."
+  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
+    if [ "${c_var}" != "PATH" ]; then
+        __envloader_verbose "-> unset ${c_var}"
+        local l_name="${c_var}_origin"
+        unset "${c_var}"
+        unset "${l_name}"
+    else
+      __envloader_verbose "-> reseting PATH to ${BASE_PATH}"
+      export PATH=${BASE_PATH}
+    fi
+  done
+  ENVLOADER_VARIABLES=""
+}
+
+function envloader_run() {
+  local c_path=$(pwd)
+  local l_vars=""
+
+  tty -s || return
+
+  envloader_unload
+  while [ ${c_path} != "/" ]; do
+    local l_file="${c_path}/.env.json"
+    __envloader_verbose considering ${l_file}
+    c_path=$(dirname ${c_path})
+    test -f "${l_file}" || continue
+    __envloader_is_safe "${l_file}" || continue
+    l_vars="$(__envloader_export_file ${l_file})${l_vars}"
+    __envloader_save_vars "${l_file}"
+  done
+
+  if [ ! -z "${l_vars}" ]; then
+      __envloader_verbose "running command : ${l_vars}"
+      eval "${l_vars}";
+  fi
+}

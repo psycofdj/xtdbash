@@ -1,0 +1,153 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import datetime
+import socket
+import sys
+import os
+
+class Printer:
+  BASE_COLORS = {
+    "black"        : 30,
+    "red"          : 31,
+    "green"        : 32,
+    "yellow"       : 33,
+    "blue"         : 34,
+    "magenta"      : 35,
+    "cyan"         : 36,
+    "white"        : 37,
+    "lightblack"   : 90,
+    "lightred"     : 91,
+    "lightgreen"   : 92,
+    "lightyellow"  : 93,
+    "lightblue"    : 94,
+    "lightmagenta" : 95,
+    "lightcyan"    : 96,
+    "lightwhite"   : 97
+  }
+
+  ITEM_COLORS = {
+    "ret"       : { "ok" : "lightgreen", "ko" : "lightred" },
+    "separator" : "lightgreen",
+    "header"    : "lightgreen",
+    "type"      : { "prod" : "lightred",
+                    "rec"  : "lightmagenta",
+                    "dev"  : "lightyellow" },
+    "hostname"  : "lightyellow",
+    "pwd"       : "lightcyan",
+    "date"      : "lightred",
+    "username"  : { "root" : "lightmagenta",
+                    "nonroot" : "lightyellow" }
+  }
+
+  ITEMS = {
+    "header"    : "⇶",
+    "separator" : "─"
+  }
+
+  def __init__(self):
+    self.m_ret      = int(os.environ["RET"])
+    self.m_count    = 0
+    self.m_columns  = int(os.environ["COLUMNS"])
+    self.m_username = os.environ["USER"]
+    self.m_hostname = socket.gethostname()
+    self.m_pwd      = os.getcwd()
+    self.m_labels   = []
+
+
+  def push_labels(self):
+    if "COMPILE_MODE" in os.environ:
+      if os.environ["COMPILE_MODE"] == "tc2":
+        self.m_labels += [("COMPILE_MODE TC2", "red")]
+      if os.environ["COMPILE_MODE"] == "tc3":
+        self.m_labels += [("COMPILE_MODE TC3", "lightyellow")]
+
+    if "DOCKER_MACHINE_NAME" in os.environ:
+      l_item = os.environ["DOCKER_MACHINE_NAME"]
+      if ("DOCKER_HOST" in os.environ) and (":3376" in os.environ["DOCKER_HOST"]):
+        l_item += "(swarm)"
+      self.m_labels += [(l_item, "lightmagenta")]
+
+    if "PROMPTCMD_LABELS" in os.environ:
+      l_labels = os.environ["PROMPTCMD_LABELS"].split(";")
+      for c_label in l_labels:
+        self.m_labels += [(c_label, "lightmagenta")]
+
+  def write(self, p_text, p_color, p_blink = False):
+    self.m_count += len(p_text.decode("utf-8"))
+    l_color = Printer.BASE_COLORS[p_color]
+    if p_blink:
+      sys.stdout.write("\033[%d;5m%s\033[0m" % (l_color, p_text))
+    else:
+      sys.stdout.write("\033[0;%dm%s\033[0m" % (l_color, p_text))
+
+  def write_header(self):
+    self.write("\n%s " % Printer.ITEMS["header"], Printer.ITEM_COLORS["header"])
+
+  def write_ret(self):
+    l_blink = True
+    l_color = Printer.ITEM_COLORS["ret"]["ko"]
+    if self.m_ret == 0:
+      l_color = Printer.ITEM_COLORS["ret"]["ok"]
+      l_blink = False
+    self.write("%d" % self.m_ret, l_color, l_blink)
+
+  def write_host(self):
+    l_usernameColor = Printer.ITEM_COLORS["username"]["nonroot"];
+    if self.m_username in Printer.ITEM_COLORS["username"]:
+      l_usernameColor = Printer.ITEM_COLORS["username"][self.m_username]
+    self.write(self.m_username, l_usernameColor)
+    self.write("@",             Printer.ITEM_COLORS["separator"])
+    self.write(self.m_hostname, Printer.ITEM_COLORS["hostname"])
+
+  def write_type(self):
+    l_type  = "dev"
+    if ".prod." in self.m_hostname:
+      l_type = "prod"
+    if ".rec." in self.m_hostname:
+      l_type = "rec"
+    self.write("[", Printer.ITEM_COLORS["separator"])
+    self.write(l_type, Printer.ITEM_COLORS["type"][l_type])
+    self.write("]", Printer.ITEM_COLORS["separator"])
+
+  def write_sep(self):
+    self.write(" %s " % Printer.ITEMS["separator"], Printer.ITEM_COLORS["separator"])
+
+  def write_pwd(self):
+    self.write(self.m_pwd, Printer.ITEM_COLORS["pwd"])
+
+  def write_date(self):
+    l_date = datetime.datetime.now()
+    l_date = l_date.strftime("%H:%M:%S")
+    self.write(l_date, Printer.ITEM_COLORS["date"])
+
+  def write_line(self):
+    l_text = "%s" % Printer.ITEMS["separator"]
+    l_text = l_text * ((self.m_columns - self.m_count))
+    self.write(" %s\n\n" % l_text, Printer.ITEM_COLORS["separator"])
+
+  def write_labels(self):
+    for c_text, c_color in self.m_labels:
+      self.write("[", Printer.ITEM_COLORS["separator"])
+      self.write(c_text, c_color)
+      self.write("]", Printer.ITEM_COLORS["separator"])
+    if len(self.m_labels):
+      self.write_sep()
+
+  def run(self):
+    self.push_labels()
+    self.write_header()
+    self.write_type()
+    self.write_sep()
+    self.write_host()
+    self.write_sep()
+    self.write_ret()
+    self.write_sep()
+    self.write_date()
+    self.write_sep()
+    self.write_labels()
+    self.write_pwd()
+    self.write_line()
+
+l_printer = Printer()
+l_printer.run()

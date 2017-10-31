@@ -1,0 +1,31 @@
+#!bin/bash
+
+export HISTSIZE=100000                   # big big history
+export HISTFILESIZE=100000               # big big history
+export HISTIGNORE="fg"                   # list of commands to ignore
+export HISTCONTROL=ignoredups:erasedups  # no duplicate
+export HISTORYSYNC_DISABLED=0            # 1 to disable historysync
+shopt -s histappend                      # append to history
+
+function historysync_off
+{
+  echo "disabling bash history sync"
+  export HISTORYSYNC_DISABLED=1
+}
+
+function historysync_on
+{
+  echo "enabling bash history sync"
+  export HISTORYSYNC_DISABLED=0
+}
+
+function historysync_run
+{
+  if [ ${HISTORYSYNC_DISABLED} -eq 0 ]; then
+      history -a;
+      history -c;
+      history -r
+  fi
+}
+
+promptcmd_push historysync_run
