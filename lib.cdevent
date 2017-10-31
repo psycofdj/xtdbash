@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export CDEVENT_CMDS=""
+
+function cdevent_push() {
+  local l_cmd="$1"; shift
+
+  if [ ! -z "${CDEVENT_CMDS}" ]; then
+      CDEVENT_CMDS="${CDEVENT_CMDS};"
+  fi
+  CDEVENT_CMDS="${CDEVENT_CMDS}${l_cmd}"
+}
+
+function __cdevent_run() {
+  eval "${CDEVENT_CMDS}"
+}
+
+decorate_builtin cd "" __cdevent_run

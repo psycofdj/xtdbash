@@ -1,16 +1,15 @@
 #!bin/bash
 
-function lastdir_save() {
-  envloader_run || true
+function __lastdir_save() {
   pwd > ${HOME}/.lastdir
 }
 
-function lastdir_load() {
+function __lastdir_load() {
   local l_val=$(cat ${HOME}/.lastdir 2>/dev/null)
   if [[ -d "$l_val" ]]; then
       cd $l_val
   fi
 }
 
-decorate_builtin cd "" lastdir_save
-lastdir_load
+cdevent_push __lastdir_save
+__lastdir_load

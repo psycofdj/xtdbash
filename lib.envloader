@@ -111,3 +111,5 @@ function envloader_run() {
       eval "${l_vars}";
   fi
 }
+
+cdevent_push envloader_run

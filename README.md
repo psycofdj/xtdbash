@@ -4,6 +4,7 @@
 - [What ?](#what-)
 - [Quick start](#quick-start)
 - [Features](#features)
+- [API reference](#api-reference)
     - [libloader](#libloader)
         - [Functions](#functions)
         - [Example](#example)
@@ -11,13 +12,16 @@
         - [Functions](#functions-1)
         - [Example](#example-1)
         - [Pro tips](#pro-tips)
+    - [promptcmd](#promptcmd)
+        - [Functions](#functions-2)
+    - [historysync](#historysync)
+        - [Functions](#functions-3)
+    - [lastdir](#lastdir)
+    - [cdevent](#cdevent)
+        - [Functions](#functions-4)
+    - [tools](#tools)
 
 <!-- markdown-toc end -->
-
-
-# What ?
-
-Bunch of bash scripts
 
 # Quick start
 
@@ -33,17 +37,29 @@ git clone https://github.com/psycofdj/xtdbash
 ```bash
 . <install-directory-root>/xtdbash/xtdbash
 
+# register requiered xtdbash modules
 libloader_register_lib  aliases
+libloader_register_lib  tools
+libloader_register_lib  cdevent
 libloader_register_lib  promptcmd
 libloader_register_lib  envloader
 libloader_register_lib  historysync
-libloader_register_lib  tools
 libloader_register_lib  lastdir
 libloader_register_file /etc/bash_completion
 libloader_register_file /usr/share/bash-completion/completions/ssh
 
+# initialize XtdBash modules
 libloader_init
+
+# (optional) adds git branch label to prompt line
+promptcmd_enable_git
+
+# (optional) activates prompt line
+promptcmd_enable_prompt
+
 ```
+
+**Note** Every module is optional but some requires others.
 
 # Features
 
@@ -52,12 +68,15 @@ libloader_init
 - [promptcmd](#promptcmd)     : configure your prompt line and runs commands
 - [historysync](#historysync) : configure bash command history
 - [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
+- [cdevent](#cdevent)         : manages commands to run when changing directory
 - [tools](#tools)             : various helpers function
 - [aliases](#aliases)         : define standard aliases
 
+# API reference
 
 ## libloader
 
+Helps to load XtdBash modules
 
 ### Functions
 
@@ -74,6 +93,8 @@ See [quick start](#quick-start) section.
 
 
 ## envloader
+
+**requires**: [cdevent](#cdevent)
 
 This module exports environment variables found in json files ```.env.json``` from
 current directory to root filesystem.
@@ -131,6 +152,8 @@ json content is bash-interpreted, you may declare the following ```.env.json``` 
 
 ## promptcmd
 
+**requires**: none
+
 This module manages commands that must be run between each prompt display.
 
 
@@ -152,9 +175,59 @@ This module manages commands that must be run between each prompt display.
 
   Note that ```PROMPTCMD_LABELS``` is reset between each prompt.
 
-- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABEL``` with current git branch name
+  ![prompt command line example](./docs/promptcmd_prompt.png)
+
+- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name
 
 
+## historysync
+
+**requires**: [promptcmd](#promptcmd)
+
+Synchronize command history between bash instances.
+
+### Functions
+
+- ```historysync_off```: Disable history synchronization for this instance
+
+- ```historysync_on```: Enable history synchronization for this instance. Synchronization is **on**
+  by default.
+
+- ```historysync_run```: run history synchronization for current bash. This automatically added
+  added to [promptcmd](#promptcmd).
+
+
+## lastdir
+
+**requires**: [cdevent](#cdevent)
+
+Remember last working directory and use it for future new bash sessions.
+There is no api for this module, everything work by pushing special commands to
+[cdevent](#cdevent) module.
+
+## cdevent
+
+**requires**: [tools](#tools)
+
+Manage a list of commands to run when changing directory. This works by decorating
+the builtin command ```cd``` by an internal function.
+
+### Functions
+
+- ```cdevent_push(cmd)```: adds **cmd** to the command list to run when changing directory.
+
+## tools
+
+**requires**: none
+
+Provides a list of help functions.
+
+- ```decorate_builtin(builtin pre post)```: decorates the builtin function **builtin** with
+  **pre** that runs before the builtin and **post** that runs after the builtin
+
+
+- ```decorate_function(fn pre post)```: decorates the function **fn** with
+  **pre** that runs before the function and **post** that runs after the function
 
 <!-- Local Variables: -->
 <!-- ispell-local-dictionary: "american" -->
