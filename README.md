@@ -115,17 +115,38 @@ envloader_list
 -> MYVAR3 = 3 (<dir>/.env.json)
 ```
 
-**Pro tips**
+**Pro tips** : working with dynamic PATH
 
 At startup, envloader stores ```${PATH}``` in the variable ```${BASE_PATH}```. Because
 json content is bash-interpreted, you may declare the following ```.env.json``` file:
-
 ```json
 {
   "GOPATH": "/home/user/dev/go",
   "PATH": "${BASH_PATH}:${GOPATH}/bin"
 }
 ```
+
+**Pro tips** : using complex variable values
+
+This module also works with objects and array values.
+```json
+{
+  "GOPATH"     : "/home/user/go",
+  "DOCKER_ENV" : {
+    "name"   : "my-container",
+    "export" : "/mnt/data",
+    "ports"  : [80, 443]
+  }
+}
+```
+
+```bash
+envloader_list
+
+->     GOPATH = /home/user/go (<path>/.env.json)
+-> DOCKER_ENV = {"name":"my-container","export":"/mnt/data","ports":[80,443]} (<path>/.env.json)
+```
+
 
 ## promptcmd
 
