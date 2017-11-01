@@ -5,16 +5,10 @@
 - [Features](#features)
 - [API reference](#api-reference)
     - [envloader](#envloader)
-        - [Functions](#functions)
-        - [Example](#example)
-        - [Pro tips](#pro-tips)
     - [promptcmd](#promptcmd)
-        - [Functions](#functions-1)
     - [historysync](#historysync)
-        - [Functions](#functions-2)
     - [lastdir](#lastdir)
     - [cdevent](#cdevent)
-        - [Functions](#functions-3)
     - [tools](#tools)
 
 <!-- markdown-toc end -->
@@ -88,7 +82,6 @@ When a variable is set by multiple files, it gets its value from the closest ```
 For security reason, ```.env.json``` files **must not** be writable by other. If so, file
 will be ignored and a warning is emitted.
 
-### Functions
 
 - ```envloader_verbose_on()```:  enable verbose output for the module
 - ```envloader_verbose_off()```: disable verbose output for the module
@@ -96,7 +89,7 @@ will be ignored and a warning is emitted.
 - ```envloader_unload()```: unset all variables managed by envloader
 - ```envloader_run()```: search for ```.env.json``` files and set environment variables
 
-### Example
+**Example**
 
 ```bash
 # we declare variables for parent directory
@@ -122,7 +115,7 @@ envloader_list
 -> MYVAR3 = 3 (<dir>/.env.json)
 ```
 
-### Pro tips
+**Pro tips**
 
 At startup, envloader stores ```${PATH}``` in the variable ```${BASE_PATH}```. Because
 json content is bash-interpreted, you may declare the following ```.env.json``` file:
@@ -140,8 +133,6 @@ json content is bash-interpreted, you may declare the following ```.env.json``` 
 
 This module manages commands that must be run between each prompt display.
 
-
-### Functions
 
 - ```promptcmd_push(cmd)```: adds **cmd** to the list of commands to run on each prompt display
 
@@ -170,7 +161,6 @@ This module manages commands that must be run between each prompt display.
 
 Synchronize command history between bash instances.
 
-### Functions
 
 - ```historysync_off```: Disable history synchronization for this instance
 
@@ -189,6 +179,7 @@ Remember last working directory and use it for future new bash sessions.
 There is no api for this module, everything work by pushing special commands to
 [cdevent](#cdevent) module.
 
+
 ## cdevent
 
 **requires**: [tools](#tools)
@@ -196,9 +187,9 @@ There is no api for this module, everything work by pushing special commands to
 Manage a list of commands to run when changing directory. This works by decorating
 the builtin command ```cd``` by an internal function.
 
-### Functions
 
 - ```cdevent_push(cmd)```: adds **cmd** to the command list to run when changing directory.
+
 
 ## tools
 
