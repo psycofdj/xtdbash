@@ -1,3 +1,101 @@
 #!/bin/bash
 
-. $(dirname $(readlink -f "${BASH_SOURCE[0]}"))/lib.libloader
+export XTDBASH_LIBS=""
+export XTDBASH_VERBOSE=0
+
+
+function __xtdbash_error() {
+  local p_msg=$@;
+  echo >&2 "$(tput setaf 1)xtdbash error$(tput sgr0): ${p_msg}"
+}
+
+function __xtdbash_verbose() {
+  local p_msg=$@;
+  if [ "${XTDBASH_VERBOSE}" == "1" ]; then
+      echo "$(tput setaf 3)xtdbash$(tput sgr0): ${p_msg}"
+  fi
+}
+
+function xtdbash_verbose_on() {
+  local l_all=$1; shift;
+  XTDBASH_VERBOSE=1
+  if [ "${l_all}" == "all" ]; then
+      export ENVLOADER_VERBOSE=1
+  fi
+}
+
+function xtdbash_verbose_off() {
+  local l_all=$1; shift;
+  XTDBASH_VERBOSE=1
+  if [ "${l_all}" == "all" ]; then
+      export ENVLOADER_VERBOSE=0
+  fi
+}
+
+function __xtdbash_load() {
+  local l_lib=$1; shift
+  local l_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/
+  local l_found=0
+  local c_lib;
+
+  for c_lib in $(echo "${XTDBASH_LIBS}" | tr ";" " "); do
+    if [ "${c_lib}" == "${l_lib}" ]; then
+        l_found=1
+        break
+    fi
+  done
+
+  if [ ${l_found} -eq 1 ]; then
+      return 0
+  fi
+
+  local l_file=${l_dir}/lib.${l_lib}
+  if [ -f "${l_file}" ]; then
+      __xtdbash_verbose "loading module ${l_lib}"
+      . ${l_file}
+      if [ ! -z "${XTDBASH_LIBS}" ]; then
+          XTDBASH_LIBS="${XTDBASH_LIBS};"
+      fi
+      XTDBASH_LIBS="${XTDBASH_LIBS}${l_lib}"
+      return 0
+  else
+    __xtdbash_error "enable to find requested module ${l_lib}"
+    return 1
+  fi
+}
+
+function xtdbash_list() {
+  local c_lib
+  for c_lib in $(echo "${XTDBASH_LIBS}" | tr ";" " "); do
+    printf -- "-> loaded module $(tput setaf 3)%s$(tput sgr0)\n" "${c_lib}"
+  done
+}
+
+function xtdbash_init() {
+  local l_libs=$@
+  local c_lib;
+
+  for c_lib in ${l_libs}; do
+    if [ "${c_lib}" == "envloader" ]; then
+        xtdbash_init "cdevent" || return 1
+    elif [ "${c_lib}" == "historysync" ]; then
+        xtdbash_init "promptcmd" || return 1
+    elif [ "${c_lib}" == "lastdir" ]; then
+        xtdbash_init "cdevent" || return 1
+    elif [ "${c_lib}" == "cdevent" ]; then
+        xtdbash_init "tools" || return 1
+    fi
+    __xtdbash_load "${c_lib}" || return 1
+  done
+  return 0
+}
+
+function xtdbash_externals() {
+  local l_home="${HOME}"
+  local c_file
+
+  for c_file in $(ls -a ${l_home}/.bashrc.* 2>/dev/null); do
+    __xtdbash_verbose "loading external settings ${c_file}"
+    . ${c_file}
+  done
+}

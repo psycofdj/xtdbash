@@ -1,24 +1,20 @@
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [What ?](#what-)
 - [Quick start](#quick-start)
 - [Features](#features)
 - [API reference](#api-reference)
-    - [libloader](#libloader)
+    - [envloader](#envloader)
         - [Functions](#functions)
         - [Example](#example)
-    - [envloader](#envloader)
-        - [Functions](#functions-1)
-        - [Example](#example-1)
         - [Pro tips](#pro-tips)
     - [promptcmd](#promptcmd)
-        - [Functions](#functions-2)
+        - [Functions](#functions-1)
     - [historysync](#historysync)
-        - [Functions](#functions-3)
+        - [Functions](#functions-2)
     - [lastdir](#lastdir)
     - [cdevent](#cdevent)
-        - [Functions](#functions-4)
+        - [Functions](#functions-3)
     - [tools](#tools)
 
 <!-- markdown-toc end -->
@@ -29,7 +25,7 @@
 
 ```bash
 cd <install-directory-root>
-git clone https://github.com/psycofdj/xtdbash
+git clone https://github.com/psycofdj/xtdbash.git
 ```
 
 2. Append the following to your bashrc:
@@ -37,33 +33,28 @@ git clone https://github.com/psycofdj/xtdbash
 ```bash
 . <install-directory-root>/xtdbash/xtdbash
 
-# register requiered xtdbash modules
-libloader_register_lib  aliases
-libloader_register_lib  tools
-libloader_register_lib  cdevent
-libloader_register_lib  promptcmd
-libloader_register_lib  envloader
-libloader_register_lib  historysync
-libloader_register_lib  lastdir
-libloader_register_file /etc/bash_completion
-libloader_register_file /usr/share/bash-completion/completions/ssh
+# initialize xtdbash with desired modules
+xtdbash_init \
+  aliases \
+  promptcmd \
+  envloader \
+  historysync \
+  lastdir
 
-# initialize XtdBash modules
-libloader_init
+# sources any file found in ~/.bashrc.*
+xtdbash_externals
 
-# (optional) adds git branch label to prompt line
+# (optional) activates git branch in prompt line
 promptcmd_enable_git
 
-# (optional) activates prompt line
+# (optional) adds git branch label to prompt line
 promptcmd_enable_prompt
-
 ```
 
 **Note** Every module is optional but some requires others.
 
 # Features
 
-- [libloader](#libloader)     : organize your bash external sourcing
 - [envloader](#envloader)     : load environment variables from json file
 - [promptcmd](#promptcmd)     : configure your prompt line and runs commands
 - [historysync](#historysync) : configure bash command history
@@ -74,22 +65,15 @@ promptcmd_enable_prompt
 
 # API reference
 
-## libloader
+Main functions are loaded through ```xtdbash``` script.
 
-Helps to load XtdBash modules
+- ```xtdbash_verbose_on(scope)```: enable verbose output, if **scope** is *all*, affects all modules
+- ```xtdbash_verbose_off(scope)```: disable verbose output, if **scope** is *all*, affects all modules
+- ```xtdbash_init(name...)```: load modules given as arguments handling their dependencies
+- ```xtdbash_externals```: loads additional bash configuration files found in ```~/.bashrc.*```
 
-### Functions
 
-- ```libloader_verbose_on```: enable verbose output for the module
-- ```libloader_verbose_off```: disable verbose output for the module
-- ```libloader_register_lib```: adds a xtdbash library to source
-- ```libloader_register_file```: adds an external file to source
-- ```libloader_init```: actually source all registered items. This function also
-  loads any file name ```.bash.*``` in your home directory.
-
-### Example
-
-See [quick start](#quick-start) section.
+See [quick start](#quick-start) section for an example.
 
 
 ## envloader
@@ -193,8 +177,8 @@ Synchronize command history between bash instances.
 - ```historysync_on```: Enable history synchronization for this instance. Synchronization is **on**
   by default.
 
-- ```historysync_run```: run history synchronization for current bash. This automatically added
-  added to [promptcmd](#promptcmd).
+- ```historysync_run```: run history synchronization for current bash instance. This function is
+  automatically added to [promptcmd](#promptcmd).
 
 
 ## lastdir

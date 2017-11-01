@@ -3,7 +3,12 @@
 declare -a __envloader_vars
 
 export ENVLOADER_VARIABLES=""
-export ENVLOADER_VERBOSE=1
+export ENVLOADER_VERBOSE
+
+if [ -z "${ENVLOADER_VERBOSE}" ]; then
+    ENVLOADER_VERBOSE=0
+fi
+
 if [ -z "${BASE_PATH}" ]; then
    export BASE_PATH=${PATH}
 fi
@@ -31,6 +36,7 @@ function __envloader_export_file() {
 
 function __envloader_save_vars() {
   local p_file=$1; shift
+  local c_var
 
   for c_var in $(cat "${p_file}" | jq -r 'to_entries[] | "\(.key)"' 2>/dev/null ); do
     if [ -z "${ENVLOADER_VARIABLES}" ]; then
@@ -65,6 +71,8 @@ function envloader_verbose_off() {
 
 function envloader_list() {
   __envloader_verbose "listing all variables..."
+  local c_var
+
   for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
     local l_originName="${c_var}_origin"
     local l_origin="${!l_originName}"
@@ -75,6 +83,8 @@ function envloader_list() {
 
 function envloader_unload() {
   __envloader_verbose "unloading all variables variables..."
+  local c_var
+
   for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
     if [ "${c_var}" != "PATH" ]; then
         __envloader_verbose "-> unset ${c_var}"
@@ -96,7 +106,7 @@ function envloader_run() {
   tty -s || return
 
   envloader_unload
-  while [ ${c_path} != "/" ]; do
+  while [ "${c_path}" != "/" ]; do
     local l_file="${c_path}/.env.json"
     __envloader_verbose considering ${l_file}
     c_path=$(dirname ${c_path})
