@@ -71,7 +71,8 @@ class Printer:
     if "PROMPTCMD_LABELS" in os.environ:
       l_labels = os.environ["PROMPTCMD_LABELS"].split(";")
       for c_label in l_labels:
-        self.m_labels += [(c_label, "lightmagenta")]
+        if len(c_label):
+          self.m_labels += [(c_label, "lightmagenta")]
 
   def write(self, p_text, p_color, p_blink = False):
     self.m_count += len(p_text.decode("utf-8"))
