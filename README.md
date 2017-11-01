@@ -180,7 +180,7 @@ This module manages commands that must be run between each prompt display.
     *lightwhite*
 
   **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
-  by pushing a function with ```promptcmd_push(cmd)```.
+  in a function registered with ```promptcmd_push(cmd)```.
 
   ![prompt command line example](./docs/promptcmd_prompt.png)
 
