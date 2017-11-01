@@ -78,7 +78,7 @@ See [quick start](#quick-start) section for an example.
 
 ## envloader
 
-**requires**: [cdevent](#cdevent)
+**requires**: [cdevent](#cdevent) and [jq (external dep)](https://stedolan.github.io/jq/)
 
 This module exports environment variables found in json files ```.env.json``` from
 current directory to root filesystem.
