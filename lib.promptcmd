@@ -1,5 +1,6 @@
 #!bin/bash
 
+
 export PROMPTCMD_COMMANDS=""
 export PROMPT_COMMAND="RET=\$? promptcmd_run"
 
@@ -13,8 +14,14 @@ function __promptcmd_prompt_add_label() {
 
 function __promptcmd_update_git() {
   local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
   if [ ! -z "${l_branch}" ]; then
-      __promptcmd_prompt_add_label "git:${l_branch}"
+      local l_color="green"
+      test -z "$(git status -s --untracked-files=normal)" || \
+          l_color="yellow"
+      test -z "$(git status -s --untracked-files=no)"     || \
+          l_color="red"
+      __promptcmd_prompt_add_label "git:${l_branch}|${l_color}"
   fi
 }
 

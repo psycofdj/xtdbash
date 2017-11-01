@@ -71,8 +71,13 @@ class Printer:
     if "PROMPTCMD_LABELS" in os.environ:
       l_labels = os.environ["PROMPTCMD_LABELS"].split(";")
       for c_label in l_labels:
-        if len(c_label):
-          self.m_labels += [(c_label, "lightmagenta")]
+        if not len(c_label):
+          continue
+        l_parts = c_label.split("|")
+        l_color = "lightmagenta"
+        if len(l_parts) == 2:
+          c_label, l_color = l_parts
+        self.m_labels += [(c_label, l_color)]
 
   def write(self, p_text, p_color, p_blink = False):
     self.m_count += len(p_text.decode("utf-8"))
@@ -130,7 +135,10 @@ class Printer:
   def write_labels(self):
     for c_text, c_color in self.m_labels:
       self.write("[", Printer.ITEM_COLORS["separator"])
-      self.write(c_text, c_color)
+      if c_color is None:
+        self.stdout.write(c_text)
+      else:
+        self.write(c_text, c_color)
       self.write("]", Printer.ITEM_COLORS["separator"])
     if len(self.m_labels):
       self.write_sep()
