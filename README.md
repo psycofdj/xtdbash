@@ -110,7 +110,7 @@ MYVAR3=3
 
 # same with envloader_list
 envloader_list
--> MYVAR1 = override (<dir>/.env.json)
+-> MYVAR1 = overriden (<dir>/.env.json)
 -> MYVAR2 = 2 (<parent-dir>/.env.json)
 -> MYVAR3 = 3 (<dir>/.env.json)
 ```
