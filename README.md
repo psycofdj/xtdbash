@@ -2,7 +2,7 @@
 **Table of Contents**
 
 - [Quick start](#quick-start)
-- [Features](#features)
+- [Modules](#modules)
 - [API reference](#api-reference)
     - [envloader](#envloader)
     - [promptcmd](#promptcmd)
@@ -45,16 +45,16 @@ promptcmd_enable_git
 promptcmd_enable_prompt
 ```
 
-**Note** Every module is optional but some requires others.
+**Note**: Every module is optional but some require others.
 
-# Features
+# Modules
 
 - [envloader](#envloader)     : load environment variables from json file
 - [promptcmd](#promptcmd)     : configure your prompt line and runs commands
 - [historysync](#historysync) : configure bash command history
 - [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
 - [cdevent](#cdevent)         : manages commands to run when changing directory
-- [tools](#tools)             : various helpers function
+- [tools](#tools)             : various helper functions
 - [aliases](#aliases)         : define standard aliases
 
 # API reference
