@@ -146,13 +146,28 @@ This module manages commands that must be run between each prompt display.
   - last command exit code (blinking red when non-zero)
   - current time
   - current directory
-  - additional labels given by ```PROMPTCMS_LABELS``` environment variable
+  - additional labels given by ```PROMPTCMD_LABELS``` environment variable
 
-  Note that ```PROMPTCMD_LABELS``` is reset between each prompt.
+
+  ```PROMPTCMD_LABELS``` environment variable contains a semi-column delimited list of **items**,
+  where each items matches one of the following formats:
+  - ```text``` : display **text** as label with default color **lightmagenta**
+  - ```text|color``` : display **text** as label with given **color**
+
+    Valid color names are: *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, *white*,
+    *lightblack*, *lightred*, *lightgreen*, *lightyellow*, *lightblue*, *lightmagenta*, *lightcyan*,
+    *lightwhite*
+
+  **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
+  by pushing a function with ```promptcmd_push(cmd)```.
 
   ![prompt command line example](./docs/promptcmd_prompt.png)
 
-- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name
+- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name.
+  Selected color depends on current working tree status :
+  - **green**  : all modifications are committed, no untracked files
+  - **yellow** : all modifications are committed, some untracked files
+  - **red** : some uncommitted changes
 
 
 ## historysync
