@@ -4,14 +4,6 @@
 export PROMPTCMD_COMMANDS=""
 export PROMPT_COMMAND="RET=\$? promptcmd_run"
 
-function __promptcmd_prompt_add_label() {
-  local l_label=$1; shift
-  if [ ! -z "${PROMPCMD_LABELS}" ]; then
-      PROMPTCMD_LABELS="${PROMPTCMD_LABELS};"
-  fi
-  PROMPTCMD_LABELS="${PROMPTCMD_LABELS}${l_label}"
-}
-
 function __promptcmd_update_git() {
   local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
@@ -21,15 +13,22 @@ function __promptcmd_update_git() {
           l_color="yellow"
       test -z "$(git status -s --untracked-files=no)"     || \
           l_color="red"
-      __promptcmd_prompt_add_label "git:${l_branch}|${l_color}"
+      promptcmd_add_labels "git:${l_branch}|${l_color}"
   fi
+}
+
+function promptcmd_add_labels() {
+  local c_var
+  for c_var in $@; do
+    strlist_add PROMPTCMD_LABELS "${c_var}"
+  done
 }
 
 function promptcmd_enable_prompt() {
   local l_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
   export PS1=""
   export COLUMNS
-  export PROMPTCMD_LABELS=""
+  export PROMPTCMD_LABELS
   promptcmd_push "LC_ALL=C ${l_dir}/bin/prompt"
 }
 

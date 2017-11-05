@@ -1,5 +1,20 @@
 #!bin/bash
 
+
+function strlist_add() {
+  local l_varName=$1; shift;
+  local l_varValue="${!l_varName}"
+  local c_var;
+
+  for c_var in $@; do
+    if [ ! -z "${l_varValue}" ]; then
+        l_varValue="${l_varValue};"
+    fi
+    l_varValue="${l_varValue}${c_var}"
+  done
+  eval ${l_varName}=\"${l_varValue}\"
+}
+
 function decorate_builtin() {
   local p_fn=$1; shift
   local p_pre=$1; shift

@@ -18,6 +18,28 @@ alias rgrep='grep --color=always -n'
 alias mmake='make 2>&1 | more'
 alias sudo='sudo '
 
-function ergrep {
+
+function gogdb() {
+  local l_file=$1;   shift
+
+  if [ -z "${l_file}" ]; then
+      echo "gogdb error: must supply program argument" 2>&1
+      return 1
+  fi
+
+  local l_script="${GOROOT}/src/runtime/runtime-gdb.py"
+
+  if [ ! -f "${l_script}" ]; then
+      l_script="/usr/local/go/src/runtime/runtime-gdb.py"
+      if [ ! -f "${l_script}" ]; then
+          echo "gogdb error: could not find must runtime-gdb.py in GOROOT or /usr/local/go" 2>&1
+          return 1
+      fi
+  fi
+
+  gdb "${l_file}" -ex "source ${l_script}"
+}
+
+function ergrep() {
   e $(\grep -n $@ | cut -d: -f1-2 | sort -u)
 }
