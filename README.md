@@ -106,7 +106,7 @@ This module manages commands that must be run between each prompt display.
   **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
   in a function registered with ```promptcmd_push(cmd)```.
 
-  ![prompt command line example](./docs/promptcmd_prompt.png)
+  ![prompt command line example](./docs/prompt.gif)
 
 - ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name.
     Selected color depends on current working tree status :
