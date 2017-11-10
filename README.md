@@ -49,8 +49,8 @@ promptcmd_enable_prompt
 
 # Modules
 
-- [envloader](#envloader)     : load environment variables from json file
 - [promptcmd](#promptcmd)     : configure your prompt line and runs commands
+- [envloader](#envloader)     : load environment variables from json file
 - [historysync](#historysync) : configure bash command history
 - [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
 - [cdevent](#cdevent)         : manages commands to run when changing directory
@@ -74,7 +74,7 @@ See [quick start](#quick-start) section for an example.
 
 ## promptcmd
 
-**requires**: none
+**requires**: [tools](#tools)
 
 This module manages commands that must be run between each prompt display.
 
