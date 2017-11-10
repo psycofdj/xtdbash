@@ -47,10 +47,10 @@ function __envloader_save_vars() {
 function __envloader_is_safe() {
   local p_file=$1; shift
   local l_mode=$(stat --printf "%A" ${p_file})
-  local l_ow=${l_mode:8:1}
+  local l_ow=${l_mode:1:9}
 
-  if [ "${l_ow}" != "-" ]; then
-      __envloader_verbose ${p_file} is not safe
+  if [ "${l_ow}" != "r--------" ]; then
+      echo "$(tput setaf 3)envloader$(tput sgr0): ${p_file} (${l_ow}) is not safe to load"
       return 1
   fi
 
@@ -64,6 +64,29 @@ function envloader_verbose_on() {
 
 function envloader_verbose_off() {
   export ENVLOADER_VERBOSE="0"
+}
+
+function envloader_edit() {
+  local p_file=$1; shift
+
+  if [ ! -r "${p_file}" ]; then
+      __envloader_error "unable to open file ${p_file}"
+      return 1
+  fi
+
+  local l_tmp=$(tempfile)
+  local l_edit=${EDITOR}
+  if [ -z "${l_edit}" ]; then
+      l_edit="vi"
+  fi
+
+  cp ${p_file} ${l_tmp}
+  ${l_edit} ${l_tmp}
+  chmod u+w ${p_file}
+  cp ${l_tmp} ${p_file}
+  chmod u-w ${p_file}
+  rm -f ${l_tmp}
+  cd $(pwd)
 }
 
 function envloader_count() {
@@ -142,4 +165,3 @@ function envloader_run() {
 }
 
 cdevent_push envloader_run
-

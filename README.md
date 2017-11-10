@@ -4,8 +4,8 @@
 - [Quick start](#quick-start)
 - [Modules](#modules)
 - [API reference](#api-reference)
-    - [envloader](#envloader)
     - [promptcmd](#promptcmd)
+    - [envloader](#envloader)
     - [historysync](#historysync)
     - [lastdir](#lastdir)
     - [cdevent](#cdevent)
@@ -37,10 +37,10 @@ xtdbash_init \
 
 # sources any file found in ~/.bashrc.*
 xtdbash_externals
-
+# (optional) display number of loaded files in prompt labels
+enloader_enable_prompt
 # (optional) activates git branch in prompt line
 promptcmd_enable_git
-
 # (optional) adds git branch label to prompt line
 promptcmd_enable_prompt
 ```
@@ -70,6 +70,50 @@ Main functions are loaded through ```xtdbash``` script.
 See [quick start](#quick-start) section for an example.
 
 
+
+
+## promptcmd
+
+**requires**: none
+
+This module manages commands that must be run between each prompt display.
+
+
+- ```promptcmd_push(cmd)```: adds **cmd** to the list of commands to run on each prompt display
+
+- ```promptcmd_run```: run all registered prompt commands
+
+- ```promptcmd_enable_prompt```: register a command that replace default PS1 format
+  by colored full-line prompt. This prompt displays:
+  - type of environment (dev, rec or prod). This is deduced from hostname string.
+  - current login name
+  - current host name
+  - last command exit code (blinking red when non-zero)
+  - current time
+  - current directory
+  - additional labels given by ```PROMPTCMD_LABELS``` environment variable
+
+
+  ```PROMPTCMD_LABELS``` environment variable contains a semi-column delimited list of **items**,
+  where each items matches one of the following formats:
+  - ```text``` : display **text** as label with default color **lightmagenta**
+  - ```text|color``` : display **text** as label with given **color**
+
+    Valid color names are: *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, *white*,
+    *lightblack*, *lightred*, *lightgreen*, *lightyellow*, *lightblue*, *lightmagenta*, *lightcyan*,
+    *lightwhite*
+
+  **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
+  in a function registered with ```promptcmd_push(cmd)```.
+
+  ![prompt command line example](./docs/promptcmd_prompt.png)
+
+- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name.
+    Selected color depends on current working tree status :
+  - **green**  : all modifications are committed, no untracked files
+  - **yellow** : all modifications are committed, some untracked files
+  - **red** : some uncommitted changes
+
 ## envloader
 
 **requires**: [cdevent](#cdevent) and [jq (external dep)](https://stedolan.github.io/jq/)
@@ -79,12 +123,13 @@ current directory to root filesystem.
 
 When a variable is set by multiple files, it gets its value from the closest ```.env.json```
 
-For security reason, ```.env.json``` files **must not** be writable by other. If so, file
+For security reason, ```.env.json``` files **must** have **r--------** permissions. If so, file
 will be ignored and a warning is emitted.
-
 
 - ```envloader_verbose_on()```:  enable verbose output for the module
 - ```envloader_verbose_off()```: disable verbose output for the module
+- ```envloader_edit(file)```: edit read-only env file
+- ```enloader_enable_prompt()``` : display number of loaded files in prompt labels
 - ```envloader_list()```: list all variables managed by envloader with their origin file
 - ```envloader_unload()```: unset all variables managed by envloader
 - ```envloader_run()```: search for ```.env.json``` files and set environment variables
@@ -146,49 +191,6 @@ envloader_list
 ->     GOPATH = /home/user/go (<path>/.env.json)
 -> DOCKER_ENV = {"name":"my-container","export":"/mnt/data","ports":[80,443]} (<path>/.env.json)
 ```
-
-
-## promptcmd
-
-**requires**: none
-
-This module manages commands that must be run between each prompt display.
-
-
-- ```promptcmd_push(cmd)```: adds **cmd** to the list of commands to run on each prompt display
-
-- ```promptcmd_run```: run all registered prompt commands
-
-- ```promptcmd_enable_prompt```: register a command that replace default PS1 format
-  by colored full-line prompt. This prompt displays:
-  - type of environment (dev, rec or prod). This is deduced from hostname string.
-  - current login name
-  - current host name
-  - last command exit code (blinking red when non-zero)
-  - current time
-  - current directory
-  - additional labels given by ```PROMPTCMD_LABELS``` environment variable
-
-
-  ```PROMPTCMD_LABELS``` environment variable contains a semi-column delimited list of **items**,
-  where each items matches one of the following formats:
-  - ```text``` : display **text** as label with default color **lightmagenta**
-  - ```text|color``` : display **text** as label with given **color**
-
-    Valid color names are: *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, *white*,
-    *lightblack*, *lightred*, *lightgreen*, *lightyellow*, *lightblue*, *lightmagenta*, *lightcyan*,
-    *lightwhite*
-
-  **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
-  in a function registered with ```promptcmd_push(cmd)```.
-
-  ![prompt command line example](./docs/promptcmd_prompt.png)
-
-- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name.
-  Selected color depends on current working tree status :
-  - **green**  : all modifications are committed, no untracked files
-  - **yellow** : all modifications are committed, some untracked files
-  - **red** : some uncommitted changes
 
 
 ## historysync
