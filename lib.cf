@@ -1,0 +1,35 @@
+#!bin/bash
+
+function __cf_update_target() {
+  local l_file="$(readlink -m ${HOME}/.cf/targets/current)"
+
+  if [ ! -f "${l_file}" ]; then
+      return 0
+  fi
+
+  local l_name=$(basename ${l_file})
+  local l_target=${l_name%%.*}
+  local l_color=""
+
+  if [[ "${l_name}" == *"prod"* ]]; then
+      l_color="lightred"
+  elif [[ "${l_name}" == *"preprod"* ]]; then
+      l_color="lightmagenta"
+  elif [[ "${l_name}" == *"rec"* ]]; then
+      l_color="lightyellow"
+  elif [[ "${l_name}" == *"dev"* ]]; then
+      l_color="lightyellow"
+  elif [[ "${l_name}" == *"beta"* ]]; then
+      l_color="lightyellow"
+  elif [[ "${l_name}" == *"local"* ]]; then
+      l_color="lightgreen"
+  else
+    l_color="lightblue"
+  fi
+
+  promptcmd_add_labels "cf:${l_target}|${l_color}"
+}
+
+function cf_enable_prompt() {
+  promptcmd_push "__cf_update_target"
+}

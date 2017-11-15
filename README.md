@@ -10,6 +10,7 @@
     - [lastdir](#lastdir)
     - [cdevent](#cdevent)
     - [tools](#tools)
+    - [cf](#cf)
 
 <!-- markdown-toc end -->
 
@@ -33,7 +34,8 @@ xtdbash_init \
   promptcmd \
   envloader \
   historysync \
-  lastdir
+  lastdir \
+  cf
 
 # sources any file found in ~/.bashrc.*
 xtdbash_externals
@@ -56,6 +58,7 @@ promptcmd_enable_prompt
 - [cdevent](#cdevent)         : manages commands to run when changing directory
 - [tools](#tools)             : various helper functions
 - [aliases](#aliases)         : define standard aliases
+- [cf](#cf)                   : integrates cloudfoundry [targets](https://github.com/guidowb/cf-targets-plugin) plugin to promptcmd
 
 # API reference
 
@@ -241,6 +244,21 @@ Provides a list of help functions.
 
 - ```decorate_function(fn pre post)```: decorates the function **fn** with
   **pre** that runs before the function and **post** that runs after the function
+
+
+## cf
+
+**requires**: [tools](#promptcmd)
+
+This module shows current cloudfoundry target in promptcmd labels. It relies
+on [targets](https://github.com/guidowb/cf-targets-plugin) plugin that maintains
+multiple targets on top of *cf* cli.
+
+- ```cf_enable_prompt()``` : detects current cf target name and push it as label
+  in promptcmd.
+
+![cf example](./docs/targets.gif)
+
 
 <!-- Local Variables: -->
 <!-- ispell-local-dictionary: "american" -->
