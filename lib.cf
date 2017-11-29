@@ -1,5 +1,28 @@
 #!bin/bash
 
+function __cf_get_org_space() {
+  local l_file="$(readlink -m ${HOME}/.cf/config.json)"
+  if [ ! -f "${l_file}" ]; then
+      return 0
+  fi
+
+  cat ${l_file} | \
+      jq -r '. | "\(.OrganizationFields.Name):\(.SpaceFields.Name)"' 2>/dev/null
+  return $?
+}
+
+function __cf_has_changes() {
+  local l_current="$(readlink -m ${HOME}/.cf/config.json)"
+  local l_lastsave="$(readlink -m ${HOME}/.cf/targets/current)"
+
+  if [ ! -f "${l_current}" -o ! -f "${l_lastsave}" ]; then
+      return -1
+  fi
+
+  cmp -s ${l_current} ${l_lastsave}
+  return $?
+}
+
 function __cf_update_target() {
   local l_file="$(readlink -m ${HOME}/.cf/targets/current)"
 
@@ -9,6 +32,14 @@ function __cf_update_target() {
 
   local l_name=$(basename ${l_file})
   local l_target=${l_name%%.*}
+  local l_context=$(__cf_get_org_space)
+  local l_type="cf"
+  local l_label=${l_target}
+
+  if [ ! -z "${l_context}" ]; then
+      l_label="${l_label}:${l_context}"
+  fi
+
   local l_color=""
 
   if [[ "${l_name}" == *"prod"* ]]; then
@@ -27,7 +58,16 @@ function __cf_update_target() {
     l_color="lightblue"
   fi
 
-  promptcmd_add_labels "cf:${l_target}|${l_color}"
+
+  __cf_has_changes
+  if [ $? -eq 1 ]; then
+      promptcmd_add_labels "*${l_type}:${l_label}*|${l_color}"
+  else
+    promptcmd_add_labels "${l_type}:${l_label}|${l_color}"
+  fi
+
+
+
 }
 
 function cf_enable_prompt() {
