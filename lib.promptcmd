@@ -8,11 +8,11 @@ function __promptcmd_update_git() {
   local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
   if [ ! -z "${l_branch}" ]; then
-      local l_color="green"
+      local l_color="lightgreen"
       test -z "$(git status -s --untracked-files=normal)" || \
-          l_color="yellow"
+          l_color="lightyellow"
       test -z "$(git status -s --untracked-files=no)"     || \
-          l_color="red"
+          l_color="lightred"
       promptcmd_add_labels "git:${l_branch}|${l_color}"
   fi
 }
