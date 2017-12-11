@@ -1,0 +1,39 @@
+#!bin/bash
+
+function __bosh_get_target() {
+  local l_file="$(readlink -m ${HOME}/.bosh_config)"
+  if [ ! -f "${l_file}" ]; then
+      echo ou
+      return 1
+  fi
+
+  cat ${l_file} | grep 'target_name' | cut -d' ' -f2- 2>/dev/null
+  return $?
+}
+
+function __bosh_update_target() {
+  local l_name=$(__bosh_get_target)
+  local l_color=""
+
+  if [ $? -ne 0 ]; then
+      return 0
+  fi
+
+  if [[ "${l_name}" == *"prod"* ]]; then
+      l_color="lightred"
+  elif [[ "${l_name}" == *"beta"* ]]; then
+      l_color="lightmagenta"
+  elif [[ "${l_name}" == *"qa"* ]]; then
+      l_color="lightyellow"
+  elif [[ "${l_name}" == *"dev"* ]]; then
+      l_color="lightyellow"
+  else
+    l_color="lightblue"
+  fi
+
+  promptcmd_add_labels "bosh:${l_name}|${l_color}"
+}
+
+function bosh_enable_prompt() {
+  promptcmd_push "__bosh_update_target"
+}
