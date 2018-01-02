@@ -1,0 +1,94 @@
+#!bin/bash
+
+export GODEV_NAMESPACES=""
+
+function __godev_error() {
+  local p_msg=$@;
+  echo >&2 "$(tput setaf 1)godev error$(tput sgr0): ${p_msg}"
+}
+
+function __godev_warning() {
+  local p_msg=$@;
+  echo "$(tput setaf 3)godev warning$(tput sgr0): ${p_msg}"
+}
+
+function godev_add_namespace() {
+  local l_host=$1; shift
+  local l_depth=$1; shift
+
+  test -z "${l_host}" && {
+    __godev_error "invalid empty namepsace host"
+    return 1
+  }
+
+  if [[ ! "${l_depth}" =~ ^-?[0-9]+$ ]]; then
+      __godev_error "invalid empty namepsace depth, must be valid integer"
+      return 1
+  fi
+
+  strlist_add GODEV_NAMESPACES ${l_host} ${l_depth}
+}
+
+function godev() {
+  local l_name=$1; shift
+  local l_gopath="${GOPATH}"
+  local l_items=()
+  local l_spaces
+
+  test -z "${l_gopath}" && {
+    __godev_error "GOPATH not set" 2>&1
+    return 1
+  }
+
+  # load comma-delimited list in bash array
+  IFS=';' read -r -a l_spaces <<< "${GODEV_NAMESPACES}"
+
+  # search through registered namespaces
+  local c_idx=0
+  while [ ${c_idx} -lt ${#l_spaces[@]} ]; do
+    local l_host=${l_spaces[${c_idx}]}
+    c_idx=$((c_idx + 1))
+    local l_depth=${l_spaces[${c_idx}]}
+    c_idx=$((c_idx + 1))
+    l_items+=($(find "${l_gopath}/src/${l_host}" -maxdepth ${l_depth} -name "*${l_name}*" -type d))
+  done
+
+  if [ ${#l_items[@]} -eq 0 ]; then
+      __godev_warning "unable to find entity '${l_name}'"
+      return 1
+  elif [ ${#l_items[@]} -gt 1 ]; then
+      __godev_warning "multiple results found"
+      local c_val
+      for c_val in $(echo ${l_items[@]}); do
+        echo "-> ${c_val}"
+      done
+      return 1
+  else
+    cd "${l_items[0]}"
+  fi
+}
+
+__godev_complete() {
+  local l_spaces
+  local cur prev words cword split
+  _init_completion -s || return
+
+  IFS=';' read -r -a l_spaces <<< "${GODEV_NAMESPACES}"
+
+  if [ ! -z "${GOPATH}" ]; then
+      local c_idx=0
+      while [ ${c_idx} -lt ${#l_spaces[@]} ]; do
+        local l_host=${l_spaces[${c_idx}]}
+        c_idx=$((c_idx + 1))
+        local l_depth=${l_spaces[${c_idx}]}
+        c_idx=$((c_idx + 1))
+        local l_dirs=$(find "${GOPATH}/src/${l_host}" -maxdepth ${l_depth} -type d | xargs -n1 basename)
+        local IFS=$'\n'
+        COMPREPLY+=($(compgen -W "${l_dirs}" -- ${cur}))
+      done
+  else
+    echo "(gopath-unset)"
+  fi
+}
+
+complete -F __godev_complete godev

@@ -18,6 +18,19 @@ alias rgrep='grep --color=always -n'
 alias mmake='make 2>&1 | more'
 alias sudo='sudo '
 
+function grip-start {
+  docker run -d --name $(basename $(pwd))-grip -v $(pwd):/export psycofdj/grip
+}
+
+function grip-stop {
+  docker stop -t0 $(basename $(pwd))-grip
+  docker rm $(basename $(pwd))-grip
+}
+
+function grip-show {
+  local l_ip=$(docker inspect $(basename $(pwd))-grip -f '{{.NetworkSettings.IPAddress}}')
+  sensible-browser http://${l_ip} &
+}
 
 function gogdb() {
   local l_file=$1;   shift

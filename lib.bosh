@@ -3,7 +3,6 @@
 function __bosh_get_target() {
   local l_file="$(readlink -m ${HOME}/.bosh_config)"
   if [ ! -f "${l_file}" ]; then
-      echo ou
       return 1
   fi
 
@@ -12,10 +11,10 @@ function __bosh_get_target() {
 }
 
 function __bosh_update_target() {
-  local l_name=$(__bosh_get_target)
   local l_color=""
+  local l_name=$(__bosh_get_target)
 
-  if [ $? -ne 0 ]; then
+  if [ -z "${l_name}" ]; then
       return 0
   fi
 

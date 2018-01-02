@@ -82,6 +82,8 @@ function xtdbash_init() {
         xtdbash_init "promptcmd" || return 1
     elif [ "${c_lib}" == "promptcmd" ]; then
         xtdbash_init "tools" || return 1
+    elif [ "${c_lib}" == "godev" ]; then
+        xtdbash_init "tools" || return 1
     elif [ "${c_lib}" == "lastdir" ]; then
         xtdbash_init "cdevent" || return 1
     elif [ "${c_lib}" == "cdevent" ]; then

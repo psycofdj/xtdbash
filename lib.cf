@@ -36,6 +36,10 @@ function __cf_update_target() {
   local l_type="cf"
   local l_label=${l_target}
 
+  if [ "${l_context}" = ":" ]; then
+      l_context="unset:unset"
+  fi
+
   if [ ! -z "${l_context}" ]; then
       l_label="${l_label}:${l_context}"
   fi

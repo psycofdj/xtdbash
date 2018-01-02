@@ -8,9 +8,10 @@
     - [envloader](#envloader)
     - [historysync](#historysync)
     - [lastdir](#lastdir)
+    - [cf](#cf)
+    - [godev](#godev)
     - [cdevent](#cdevent)
     - [tools](#tools)
-    - [cf](#cf)
 
 <!-- markdown-toc end -->
 
@@ -35,16 +36,30 @@ xtdbash_init \
   envloader \
   historysync \
   lastdir \
-  cf
+  cf \
+  godev
 
 # sources any file found in ~/.bashrc.*
 xtdbash_externals
+
 # (optional) display number of loaded files in prompt labels
 enloader_enable_prompt
+
 # (optional) activates git branch in prompt line
 promptcmd_enable_git
-# (optional) adds git branch label to prompt line
+
+# (optional) add cloud floundry target prompt label
+cf_enable_prompt
+
+# (optional) add bosh prompt labels
+bosh_enable_prompt
+
+# activates screen-wide prompt line
 promptcmd_enable_prompt
+
+# register godev search paths
+godev_add_namespace code.cloudfoundry.org 1
+godev_add_namespace github.com 2
 ```
 
 **Note**: Every module is optional but some require others.
@@ -55,10 +70,11 @@ promptcmd_enable_prompt
 - [envloader](#envloader)     : load environment variables from json file
 - [historysync](#historysync) : configure bash command history
 - [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
-- [cdevent](#cdevent)         : manages commands to run when changing directory
-- [tools](#tools)             : various helper functions
 - [aliases](#aliases)         : define standard aliases
 - [cf](#cf)                   : integrates cloudfoundry [targets](https://github.com/guidowb/cf-targets-plugin) plugin to promptcmd
+- [godev](#godev)             : help to navigates among go projects in current GOPATH
+- [cdevent](#cdevent)         : manages commands to run when changing directory
+- [tools](#tools)             : various helper functions
 
 # API reference
 
@@ -221,6 +237,43 @@ There is no api for this module, everything work by pushing special commands to
 [cdevent](#cdevent) module.
 
 
+## cf
+
+**requires**: [promptcmd](#promptcmd)
+
+This module shows current cloudfoundry target in promptcmd labels. It relies
+on [targets](https://github.com/guidowb/cf-targets-plugin) plugin that maintains
+multiple targets on top of *cf* cli.
+
+- ```cf_enable_prompt()``` : detects current cf target name and push it as label
+  in promptcmd.
+
+![cf example](./docs/targets.gif)
+
+## godev
+
+**requires**: [tools](#tools)
+
+This module provides a function that searches projects in *GOPATH* for
+given name and change directory into it.
+
+When multiple items matches given name, the function emits a warning
+and shows all found directories.
+
+In addition, the module comes with a bash-completion script that completes
+user input according to matching folder of *GOPATH*. Matches include repository
+names (eg. github.com), repository namespaces and project names.
+
+- ```godev(name)``` : searches for given name in current *GOPATH* and ```cd``` into
+  directory if a single item is found.
+
+- ```godev_add_namespace(host deth)``` : add given repository host in search paths. 
+  second arguments tells how deep godev and its completion should search. Typically
+  in *github.com's* hierarchy, we want to search in two levels : **(namespace)/(project)**.
+  In other repositories such as *code.cloudfoundry.com*, we only need 1 layer.
+
+![cf example](./docs/godev.gif)
+
 ## cdevent
 
 **requires**: [tools](#tools)
@@ -236,7 +289,7 @@ the builtin command ```cd``` by an internal function.
 
 **requires**: none
 
-Provides a list of help functions.
+Provides a list of helper functions.
 
 - ```decorate_builtin(builtin pre post)```: decorates the builtin function **builtin** with
   **pre** that runs before the builtin and **post** that runs after the builtin
@@ -245,20 +298,8 @@ Provides a list of help functions.
 - ```decorate_function(fn pre post)```: decorates the function **fn** with
   **pre** that runs before the function and **post** that runs after the function
 
-
-## cf
-
-**requires**: [tools](#promptcmd)
-
-This module shows current cloudfoundry target in promptcmd labels. It relies
-on [targets](https://github.com/guidowb/cf-targets-plugin) plugin that maintains
-multiple targets on top of *cf* cli.
-
-- ```cf_enable_prompt()``` : detects current cf target name and push it as label
-  in promptcmd.
-
-![cf example](./docs/targets.gif)
-
+- ```strlist_add(name value)```: appends **value** to semi-column separated string list
+  hold by variable **name**
 
 <!-- Local Variables: -->
 <!-- ispell-local-dictionary: "american" -->
