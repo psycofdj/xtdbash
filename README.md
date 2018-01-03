@@ -1,8 +1,8 @@
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [Quick start](#quick-start)
 - [Modules](#modules)
+- [Quick start](#quick-start)
 - [API reference](#api-reference)
     - [promptcmd](#promptcmd)
     - [envloader](#envloader)
@@ -16,6 +16,21 @@
     - [tools](#tools)
 
 <!-- markdown-toc end -->
+
+
+# Modules
+
+- [promptcmd](#promptcmd)     : screen-wide prompt line with configurable informations
+- [envloader](#envloader)     : load environment variables from json file found in directory tree
+- [historysync](#historysync) : synchronize command history across sessions
+- [lastdir](#lastdir)         : remember last directory and restore it on new session
+- [aliases](#aliases)         : define standard aliases
+- [git](#git)                 : display current git status in prompt line
+- [cf](#cf)                   : display current cloud foundry [target](https://github.com/guidowb/cf-targets-plugin) to prompt line (with completion)
+- [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in prompt line
+- [godev](#godev)             : navigate among *GO* projects available in current GOPATH (with completion)
+- [cdevent](#cdevent)         : manage commands to run when changing directory
+- [tools](#tools)             : various helper functions
 
 # Quick start
 
@@ -67,20 +82,6 @@ godev_add_namespace github.com 2
 ```
 
 **Note**: Every module is optional but some require others.
-
-# Modules
-
-- [promptcmd](#promptcmd)     : configure your prompt line and runs commands
-- [envloader](#envloader)     : load environment variables from json file
-- [historysync](#historysync) : configure bash command history
-- [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
-- [aliases](#aliases)         : define standard aliases
-- [git](#git)                 : display current git status in promptcmd
-- [cf](#cf)                   : integrates cloudfoundry [targets](https://github.com/guidowb/cf-targets-plugin) plugin to promptcmd
-- [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in promptcmd
-- [godev](#godev)             : help to navigates among go projects in current GOPATH
-- [cdevent](#cdevent)         : manages commands to run when changing directory
-- [tools](#tools)             : various helper functions
 
 # API reference
 
@@ -140,13 +141,13 @@ current directory to root filesystem.
 
 When a variable is set by multiple files, it gets its value from the closest ```.env.json```
 
-For security reason, ```.env.json``` files **must** have **r--------** permissions. If so, file
+For security reason, ```.env.json``` files **must** have **r--------** permissions. If not, file
 will be ignored and a warning is emitted.
 
 - ```envloader_verbose_on()```:  enable verbose output for the module
 - ```envloader_verbose_off()```: disable verbose output for the module
 - ```envloader_edit([file])```: edit read-only env file. **files** default to ```./.env.json```
-- ```envloader_enable_prompt()``` : display number of loaded files in prompt labels
+- ```envloader_enable_prompt()```: display number of loaded variables in prompt labels
 - ```envloader_list()```: list all variables managed by envloader with their origin file
 - ```envloader_unload()```: unset all variables managed by envloader
 - ```envloader_run()```: search for ```.env.json``` files and set environment variables
@@ -178,6 +179,8 @@ envloader_list
 -> MYVAR2 = 2 (<parent-dir>/.env.json)
 -> MYVAR3 = 3 (<dir>/.env.json)
 ```
+
+**Live demo**
 
 ![envloader](./docs/envloader.gif)
 
@@ -250,18 +253,26 @@ There is no api for this module, everything work by pushing special commands to
   - **yellow** : all modifications are committed, some untracked files
   - **red** : some uncommitted changes
 
+**Live demo**
+
 ![git](./docs/git.gif)
 
 ## cf
 
 **requires**: [promptcmd](#promptcmd) and [targets (external dep)](https://github.com/guidowb/cf-targets-plugin)
 
-This module shows current cloudfoundry target in promptcmd labels. It relies
+This module shows current cloud foundry target in promptcmd labels. It relies
 on [targets](https://github.com/guidowb/cf-targets-plugin) plugin that maintains
 multiple targets on top of *cf* cli.
 
+It also provides a completion for ```cf``` command that handles *targets* plugin.
+(See [issue #1116](https://github.com/cloudfoundry/cli/issues/1116) that explains
+why cloud foundry plugins don't have builtin bash completion)
+
 - ```cf_enable_prompt()``` : detects current cf target name and push it as label
   in promptcmd.
+
+**Live demo**
 
 ![cf example](./docs/cf.gif)
 
@@ -273,6 +284,8 @@ This module shows current bosh target in promptcmd labels..
 
 - ```bosh_enable_prompt()``` : detects current bosh target name and push it as label
   in promptcmd.
+
+**Live demo**
 
 ![bosh example](./docs/bosh.gif)
 
@@ -297,6 +310,8 @@ names (eg. github.com), repository namespaces and project names.
   second arguments tells how deep godev and its completion should search. Typically
   in *github.com's* hierarchy, we want to search in two levels : **(namespace)/(project)**.
   In other repositories such as *code.cloudfoundry.com*, we only need 1 layer.
+
+**Live demo**
 
 ![cf example](./docs/godev.gif)
 

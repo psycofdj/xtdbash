@@ -68,7 +68,6 @@ function __cf_update_target() {
     l_color="lightblue"
   fi
 
-
   __cf_has_changes
   if [ $? -eq 1 ]; then
       promptcmd_add_labels "*${l_type}:${l_label}*|${l_color}"
@@ -86,3 +85,35 @@ function cf_enable_prompt() {
 function cf_disable_prompt() {
   CF_PROMPT_ENABLED=0
 }
+
+__cf_complete_cli() {
+  # All arguments except the first one
+  local args
+  args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+  # Only split on newlines
+  local IFS=$'\n'
+  # Call completion (note that the first element of COMP_WORDS is
+  # the executable itself)
+  COMPREPLY+=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} "${args[@]}"))
+  return 0
+}
+
+__cf_complete_targets() {
+  local cur prev words cword split
+  _init_completion -s || return
+
+  if [ "${prev}" == "cf" ]; then
+      __cf_complete_cli
+      COMPREPLY+=($(compgen -W "manifest-generator targets save-target set-target delete-target" -- ${cur}))
+  elif [ "${prev}" == "set-target" -o "${prev}" == "delete-target" ]; then
+      local targets=$(find ${HOME}/.cf/targets/*.config.json | \
+                           xargs -n1 basename | \
+                           sed 's/.config.json//g')
+      local IFS=$'\n'
+      COMPREPLY+=($(compgen -W "${targets}" -- ${cur}))
+  else
+    __cf_complete_cli
+  fi
+}
+
+complete -F __cf_complete_targets cf
