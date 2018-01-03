@@ -1,5 +1,7 @@
 #!bin/bash
 
+export CF_PROMPT_ENABLED=0
+
 function __cf_get_org_space() {
   local l_file="$(readlink -m ${HOME}/.cf/config.json)"
   if [ ! -f "${l_file}" ]; then
@@ -24,6 +26,10 @@ function __cf_has_changes() {
 }
 
 function __cf_update_target() {
+  test ${CF_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
   local l_file="$(readlink -m ${HOME}/.cf/targets/current)"
 
   if [ ! -f "${l_file}" ]; then
@@ -69,11 +75,14 @@ function __cf_update_target() {
   else
     promptcmd_add_labels "${l_type}:${l_label}|${l_color}"
   fi
-
-
-
 }
 
 function cf_enable_prompt() {
+  CF_PROMPT_ENABLED=1
   promptcmd_push "__cf_update_target"
+}
+
+
+function cf_disable_prompt() {
+  CF_PROMPT_ENABLED=0
 }

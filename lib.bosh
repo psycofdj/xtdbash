@@ -1,5 +1,7 @@
 #!bin/bash
 
+export BOSH_PROMPT_ENABLED=0
+
 function __bosh_get_target() {
   local l_file="$(readlink -m ${HOME}/.bosh_config)"
   if [ ! -f "${l_file}" ]; then
@@ -11,6 +13,10 @@ function __bosh_get_target() {
 }
 
 function __bosh_update_target() {
+  test ${BOSH_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
   local l_color=""
   local l_name=$(__bosh_get_target)
 
@@ -34,5 +40,10 @@ function __bosh_update_target() {
 }
 
 function bosh_enable_prompt() {
+  BOSH_PROMPT_ENABLED=1
   promptcmd_push "__bosh_update_target"
+}
+
+function bosh_disable_prompt() {
+  BOSH_PROMPT_ENABLED=0
 }

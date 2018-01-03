@@ -4,6 +4,8 @@ declare -a __envloader_vars
 
 export ENVLOADER_VARIABLES=""
 export ENVLOADER_VERBOSE
+export ENVLOADER_PROMPT_ENABLED=0
+
 
 if [ -z "${ENVLOADER_VERBOSE}" ]; then
     ENVLOADER_VERBOSE=0
@@ -15,7 +17,7 @@ fi
 
 function __envloader_error() {
   local p_msg=$@;
-  echo >&2 "$(tput setaf 1)enloader error$(tput sgr0): ${p_msg}"
+  echo >&2 "$(tput setaf 1)envloader error$(tput sgr0): ${p_msg}"
 }
 
 function __envloader_verbose() {
@@ -69,6 +71,10 @@ function envloader_verbose_off() {
 function envloader_edit() {
   local p_file=$1; shift
 
+  if [ -z "${p_file}" ]; then
+      p_file=".env.json"
+  fi
+
   if [ ! -f "${p_file}" ]; then
       echo '{}' > "${p_file}"
       chmod 400 "${p_file}"
@@ -95,28 +101,37 @@ function envloader_edit() {
 function envloader_count() {
   local c_var
   local l_res=0
-  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
+  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' '\n' | sort -u); do
     l_res=$((l_res + 1))
   done
   echo "${l_res}"
 }
 
-function __enloader_update_prompt_label() {
+function __envloader_update_prompt_label() {
+  test ${ENVLOADER_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
   local l_count=$(envloader_count)
   if [ ${l_count} -ne 0 ]; then
       promptcmd_add_labels "env:${l_count}|yellow"
   fi
 }
 
-function enloader_enable_prompt() {
-  promptcmd_push "__enloader_update_prompt_label"
+function envloader_enable_prompt() {
+  ENVLOADER_PROMPT_ENABLED=1
+  promptcmd_push "__envloader_update_prompt_label"
+}
+
+function envloader_disable_prompt() {
+  ENVLOADER_PROMPT_ENABLED=0
 }
 
 function envloader_list() {
   __envloader_verbose "listing all variables..."
   local c_var
 
-  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' ' '); do
+  for c_var in $(echo "${ENVLOADER_VARIABLES}" | tr ';' '\n' | sort -u); do
     local l_originName="${c_var}_origin"
     local l_origin="${!l_originName}"
     local l_val="${!c_var}"

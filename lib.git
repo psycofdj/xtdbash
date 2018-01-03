@@ -1,0 +1,31 @@
+#!/bin/bash
+
+export GIT_PROMPT_ENABLED=0
+
+
+function __git_update_labels() {
+  test ${GIT_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
+  local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+  if [ ! -z "${l_branch}" ]; then
+      local l_color="lightgreen"
+      test -z "$(git status -s --untracked-files=normal)" || \
+          l_color="lightyellow"
+      test -z "$(git status -s --untracked-files=no)"     || \
+          l_color="lightred"
+      promptcmd_add_labels "git:${l_branch}|${l_color}"
+  fi
+}
+
+
+function git_enable_prompt() {
+  GIT_PROMPT_ENABLED=1
+  promptcmd_push "__git_update_labels"
+}
+
+function git_disable_prompt() {
+  GIT_PROMPT_ENABLED=0
+}

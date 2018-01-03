@@ -8,7 +8,9 @@
     - [envloader](#envloader)
     - [historysync](#historysync)
     - [lastdir](#lastdir)
+    - [git](#git)
     - [cf](#cf)
+    - [bosh](#bosh)
     - [godev](#godev)
     - [cdevent](#cdevent)
     - [tools](#tools)
@@ -36,17 +38,19 @@ xtdbash_init \
   envloader \
   historysync \
   lastdir \
+  git \
   cf \
+  bosh \
   godev
 
 # sources any file found in ~/.bashrc.*
 xtdbash_externals
 
 # (optional) display number of loaded files in prompt labels
-enloader_enable_prompt
+envloader_enable_prompt
 
 # (optional) activates git branch in prompt line
-promptcmd_enable_git
+git_enable_prompt
 
 # (optional) add cloud floundry target prompt label
 cf_enable_prompt
@@ -54,8 +58,8 @@ cf_enable_prompt
 # (optional) add bosh prompt labels
 bosh_enable_prompt
 
-# activates screen-wide prompt line
-promptcmd_enable_prompt
+# activates screen-wide prompt line with side labels
+promptcmd_enable
 
 # register godev search paths
 godev_add_namespace code.cloudfoundry.org 1
@@ -71,7 +75,9 @@ godev_add_namespace github.com 2
 - [historysync](#historysync) : configure bash command history
 - [lastdir](#lastdir)         : remember your last current directory and restore it on new shell
 - [aliases](#aliases)         : define standard aliases
+- [git](#git)                 : display current git status in promptcmd
 - [cf](#cf)                   : integrates cloudfoundry [targets](https://github.com/guidowb/cf-targets-plugin) plugin to promptcmd
+- [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in promptcmd
 - [godev](#godev)             : help to navigates among go projects in current GOPATH
 - [cdevent](#cdevent)         : manages commands to run when changing directory
 - [tools](#tools)             : various helper functions
@@ -80,8 +86,6 @@ godev_add_namespace github.com 2
 
 Main functions are loaded through ```xtdbash``` script.
 
-- ```xtdbash_verbose_on(scope)```: enable verbose output, if **scope** is *all*, affects all modules
-- ```xtdbash_verbose_off(scope)```: disable verbose output, if **scope** is *all*, affects all modules
 - ```xtdbash_init(name...)```: load modules given as arguments handling their dependencies
 - ```xtdbash_externals```: loads additional bash configuration files found in ```~/.bashrc.*```
 
@@ -102,7 +106,7 @@ This module manages commands that must be run between each prompt display.
 
 - ```promptcmd_run```: run all registered prompt commands
 
-- ```promptcmd_enable_prompt```: register a command that replace default PS1 format
+- ```promptcmd_enable```: register a command that replace default PS1 format
   by colored full-line prompt. This prompt displays:
   - type of environment (dev, rec or prod). This is deduced from hostname string.
   - current login name
@@ -125,13 +129,7 @@ This module manages commands that must be run between each prompt display.
   **Note**: ```PROMPTCMD_LABELS``` is reset between each prompt. Variable should be set
   in a function registered with ```promptcmd_push(cmd)```.
 
-  ![prompt command line example](./docs/prompt.gif)
-
-- ```promptcmd_enable_git```: populates ```PROMPTCMD_LABELS``` with current git branch name.
-    Selected color depends on current working tree status :
-  - **green**  : all modifications are committed, no untracked files
-  - **yellow** : all modifications are committed, some untracked files
-  - **red** : some uncommitted changes
+- ```promptcmd_add_labels(item item...)```: add each arguments int ```PROMPTCMD_LABELS``` list
 
 ## envloader
 
@@ -147,8 +145,8 @@ will be ignored and a warning is emitted.
 
 - ```envloader_verbose_on()```:  enable verbose output for the module
 - ```envloader_verbose_off()```: disable verbose output for the module
-- ```envloader_edit(file)```: edit read-only env file
-- ```enloader_enable_prompt()``` : display number of loaded files in prompt labels
+- ```envloader_edit([file])```: edit read-only env file. **files** default to ```./.env.json```
+- ```envloader_enable_prompt()``` : display number of loaded files in prompt labels
 - ```envloader_list()```: list all variables managed by envloader with their origin file
 - ```envloader_unload()```: unset all variables managed by envloader
 - ```envloader_run()```: search for ```.env.json``` files and set environment variables
@@ -158,9 +156,11 @@ will be ignored and a warning is emitted.
 ```bash
 # we declare variables for parent directory
 echo '{ "MYVAR1" : "1", "MYVAR2" : "2" }' > ../.env.json
+chmod 600 ../.env.json
 
 # we declare variables for current directory
 echo '{ "MYVAR3" : "2", "MYVAR1" : "overriden" }' > .env.json
+chmod 600 ./.env.json
 
 # we trigger envloader by 'changing' current directory
 cd .
@@ -178,6 +178,8 @@ envloader_list
 -> MYVAR2 = 2 (<parent-dir>/.env.json)
 -> MYVAR3 = 3 (<dir>/.env.json)
 ```
+
+![envloader](./docs/envloader.gif)
 
 **Pro tips** : working with dynamic PATH
 
@@ -212,6 +214,7 @@ envloader_list
 ```
 
 
+
 ## historysync
 
 **requires**: [promptcmd](#promptcmd)
@@ -237,9 +240,21 @@ There is no api for this module, everything work by pushing special commands to
 [cdevent](#cdevent) module.
 
 
-## cf
+## git
 
 **requires**: [promptcmd](#promptcmd)
+
+- ```git_enable_prompt```: populates ```PROMPTCMD_LABELS``` with current git branch name.
+    Selected color depends on current working tree status :
+  - **green**  : all modifications are committed, no untracked files
+  - **yellow** : all modifications are committed, some untracked files
+  - **red** : some uncommitted changes
+
+![git](./docs/git.gif)
+
+## cf
+
+**requires**: [promptcmd](#promptcmd) and [targets (external dep)](https://github.com/guidowb/cf-targets-plugin)
 
 This module shows current cloudfoundry target in promptcmd labels. It relies
 on [targets](https://github.com/guidowb/cf-targets-plugin) plugin that maintains
@@ -248,7 +263,18 @@ multiple targets on top of *cf* cli.
 - ```cf_enable_prompt()``` : detects current cf target name and push it as label
   in promptcmd.
 
-![cf example](./docs/targets.gif)
+![cf example](./docs/cf.gif)
+
+## bosh
+
+**requires**: [promptcmd](#promptcmd)
+
+This module shows current bosh target in promptcmd labels..
+
+- ```bosh_enable_prompt()``` : detects current bosh target name and push it as label
+  in promptcmd.
+
+![bosh example](./docs/bosh.gif)
 
 ## godev
 
@@ -267,7 +293,7 @@ names (eg. github.com), repository namespaces and project names.
 - ```godev(name)``` : searches for given name in current *GOPATH* and ```cd``` into
   directory if a single item is found.
 
-- ```godev_add_namespace(host deth)``` : add given repository host in search paths. 
+- ```godev_add_namespace(host deth)``` : add given repository host in search paths.
   second arguments tells how deep godev and its completion should search. Typically
   in *github.com's* hierarchy, we want to search in two levels : **(namespace)/(project)**.
   In other repositories such as *code.cloudfoundry.com*, we only need 1 layer.
