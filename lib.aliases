@@ -17,6 +17,7 @@ alias lps='COLUMNS=9999 ps auxw  --sort=uid,pid,cmd'
 alias rgrep='grep --color=always -n'
 alias mmake='make 2>&1 | more'
 alias sudo='sudo '
+alias tf="terraform"
 
 function grip-start {
   docker run -d --name $(basename $(pwd))-grip -v $(pwd):/export psycofdj/grip

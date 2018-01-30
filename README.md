@@ -27,7 +27,7 @@
 - [aliases](#aliases)         : define standard aliases
 - [git](#git)                 : display current git status in prompt line
 - [cf](#cf)                   : display current cloud foundry [target](https://github.com/guidowb/cf-targets-plugin) to prompt line (with completion)
-- [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in prompt line
+- [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in prompt line and completion
 - [godev](#godev)             : navigate among *GO* projects available in current GOPATH (with completion)
 - [cdevent](#cdevent)         : manage commands to run when changing directory
 - [tools](#tools)             : various helper functions
@@ -70,8 +70,8 @@ git_enable_prompt
 # (optional) add cloud floundry target prompt label
 cf_enable_prompt
 
-# (optional) add bosh prompt labels
-bosh_enable_prompt
+# (optional) add bosh prompt labels (bosh V1 only)
+bosh1_enable_prompt
 
 # activates screen-wide prompt line with side labels
 promptcmd_enable
@@ -280,14 +280,19 @@ why cloud foundry plugins don't have builtin bash completion)
 
 **requires**: [promptcmd](#promptcmd)
 
-This module shows current bosh target in promptcmd labels..
+This module shows current bosh-V1 target in promptcmd labels. It also provides
+completion for bosh-V2
 
-- ```bosh_enable_prompt()``` : detects current bosh target name and push it as label
+- ```bosh1_enable_prompt()``` : detects current bosh-V1 target name and push it as label
   in promptcmd.
 
 **Live demo**
 
 ![bosh example](./docs/bosh.gif)
+
+For bosh-V2, module provides standard cli completion and addition alias search for
+```-e|--environment``` flags. Completions are automatically started at module load.
+
 
 ## godev
 

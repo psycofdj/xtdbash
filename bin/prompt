@@ -27,18 +27,19 @@ class Printer:
   }
 
   ITEM_COLORS = {
-    "ret"       : { "ok" : "lightgreen", "ko" : "lightred" },
-    "separator" : "lightgreen",
-    "header"    : "lightgreen",
-    "type"      : { "prod" : "lightred",
-                    "rec"  : "lightmagenta",
-                    "dev"  : "lightyellow",
-                    "iaas" : "lightred" },
-    "hostname"  : "lightyellow",
-    "pwd"       : "lightcyan",
-    "date"      : "lightred",
-    "username"  : { "root" : "lightmagenta",
-                    "nonroot" : "lightyellow" }
+    "ret"           : { "ok" : "lightgreen", "ko" : "lightred" },
+    "separator"     : "lightgreen",
+    "header"        : "lightgreen",
+    "type"          : { "prod" : "lightred",
+                        "rec"  : "lightmagenta",
+                        "dev"  : "lightyellow",
+                        "iaas" : "lightred" },
+    "hostname"      : "lightyellow",
+    "pwd"           : "lightcyan",
+    "pwd_collapsed" : "cyan",
+    "date"          : "lightred",
+    "username"      : { "root" : "lightmagenta",
+                        "nonroot" : "lightyellow" }
   }
 
   ITEMS = {
@@ -121,7 +122,12 @@ class Printer:
     self.write(" %s " % Printer.ITEMS["separator"], Printer.ITEM_COLORS["separator"])
 
   def write_pwd(self):
-    self.write(self.m_pwd, Printer.ITEM_COLORS["pwd"])
+    l_left  = self.m_columns - self.m_count
+    l_color = Printer.ITEM_COLORS["pwd"]
+    if len(self.m_pwd) > l_left:
+      self.m_pwd = "..." + self.m_pwd[-l_left + 4:]
+      l_color = Printer.ITEM_COLORS["pwd_collapsed"]
+    self.write(self.m_pwd, l_color)
 
   def write_date(self):
     l_date = datetime.datetime.now()
@@ -134,13 +140,18 @@ class Printer:
     self.write(" %s\n\n" % l_text, Printer.ITEM_COLORS["separator"])
 
   def write_labels(self):
+    # if len(self.m_labels):
+    #   self.write("|", Printer.ITEM_COLORS["separator"])
     for c_text, c_color in self.m_labels:
-      self.write("[", Printer.ITEM_COLORS["separator"])
+      # self.write("[", Printer.ITEM_COLORS["separator"])
       if c_color is None:
         self.stdout.write(c_text)
       else:
         self.write(c_text, c_color)
-      self.write("]", Printer.ITEM_COLORS["separator"])
+      if (c_text,c_color) != self.m_labels[-1]:
+        self.write("|", Printer.ITEM_COLORS["separator"])
+      # self.write(",", Printer.ITEM_COLORS["separator"])
+    # self.write("|", Printer.ITEM_COLORS["separator"])
     if len(self.m_labels):
       self.write_sep()
 

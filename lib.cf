@@ -69,11 +69,11 @@ function __cf_update_target() {
   fi
 
   __cf_has_changes
-  if [ $? -eq 1 ]; then
-      promptcmd_add_labels "*${l_type}:${l_label}*|${l_color}"
-  else
+  # if [ $? -eq 1 ]; then
+  #     promptcmd_add_labels "*${l_type}:${l_label}*|${l_color}"
+  # else
     promptcmd_add_labels "${l_type}:${l_label}|${l_color}"
-  fi
+  # fi
 }
 
 function cf_enable_prompt() {

@@ -114,7 +114,7 @@ function __envloader_update_prompt_label() {
 
   local l_count=$(envloader_count)
   if [ ${l_count} -ne 0 ]; then
-      promptcmd_add_labels "env:${l_count}|yellow"
+      promptcmd_add_labels "env:${l_count}|lightmagenta"
   fi
 }
 

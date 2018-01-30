@@ -1,8 +1,8 @@
 #!bin/bash
 
-export BOSH_PROMPT_ENABLED=0
+export BOSH1_PROMPT_ENABLED=0
 
-function __bosh_get_target() {
+function __bosh1_get_target() {
   local l_file="$(readlink -m ${HOME}/.bosh_config)"
   if [ ! -f "${l_file}" ]; then
       return 1
@@ -12,13 +12,13 @@ function __bosh_get_target() {
   return $?
 }
 
-function __bosh_update_target() {
-  test ${BOSH_PROMPT_ENABLED} -eq 0 && {
+function __bosh1_update_target() {
+  test ${BOSH1_PROMPT_ENABLED} -eq 0 && {
     return 0
   }
 
   local l_color=""
-  local l_name=$(__bosh_get_target)
+  local l_name=$(__bosh1_get_target)
 
   if [ -z "${l_name}" ]; then
       return 0
@@ -39,11 +39,37 @@ function __bosh_update_target() {
   promptcmd_add_labels "bosh:${l_name}|${l_color}"
 }
 
-function bosh_enable_prompt() {
-  BOSH_PROMPT_ENABLED=1
-  promptcmd_push "__bosh_update_target"
+function bosh1_enable_prompt() {
+  BOSH1_PROMPT_ENABLED=1
+  promptcmd_push "__bosh1_update_target"
 }
 
-function bosh_disable_prompt() {
-  BOSH_PROMPT_ENABLED=0
+function bosh1_disable_prompt() {
+  BOSH1_PROMPT_ENABLED=0
 }
+
+function __bosh2_list_envs() {
+  bosh environments --json | jq -r '.Tables[].Rows[].alias'
+}
+
+__bosh2_complete_cli() {
+  # All arguments except the first one
+  local args
+  args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+
+  local cur prev words cword split
+  _init_completion -s || return
+
+  if [ "${prev}" == "-e" -o "${prev}" == "--environment" ]; then
+      COMPREPLY+=($(compgen -W "$(__bosh2_list_envs)" -- ${cur}))
+  else
+    # Only split on newlines
+    local IFS=$'\n'
+    # Call completion (note that the first element of COMP_WORDS is
+    # the executable itself)
+    COMPREPLY+=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} "${args[@]}"))
+  fi
+  return 0
+}
+
+complete -F __bosh2_complete_cli bosh
