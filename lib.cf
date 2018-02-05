@@ -101,16 +101,20 @@ __cf_complete_cli() {
 __cf_complete_targets() {
   local cur prev words cword split
   _init_completion -s || return
+  local l_cmd="${words[@]:0:${cword}}"
 
-  if [ "${prev}" == "cf" ]; then
-      __cf_complete_cli
-      COMPREPLY+=($(compgen -W "manifest-generator targets save-target set-target delete-target" -- ${cur}))
-  elif [ "${prev}" == "set-target" -o "${prev}" == "delete-target" ]; then
+  if [[ "${l_cmd}" =~ ^.*(set-target|delete-target)( -f)?$ ]];then
       local targets=$(find ${HOME}/.cf/targets/*.config.json | \
                            xargs -n1 basename | \
                            sed 's/.config.json//g')
       local IFS=$'\n'
       COMPREPLY+=($(compgen -W "${targets}" -- ${cur}))
+      if [ "${prev}" != "-f" ]; then
+          COMPREPLY+=($(compgen -W "-f" -- ${cur}))
+      fi
+  elif [ "${prev}" == "cf" ]; then
+    __cf_complete_cli
+    COMPREPLY+=($(compgen -W "manifest-generator targets save-target set-target delete-target" -- ${cur}))
   else
     __cf_complete_cli
   fi
