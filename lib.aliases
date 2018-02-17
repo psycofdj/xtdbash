@@ -33,6 +33,23 @@ function grip-show {
   sensible-browser http://${l_ip} &
 }
 
+function docker-ip {
+  local l_container=$1; shift;
+  docker inspect ${l_container} -f '{{ .NetworkSettings.IPAddress }}'
+}
+
+function __docker-ip_cpl {
+  local cur prev words cword split
+  _init_completion -s || return
+
+  if [ ${cword} -eq 1 ]; then
+      local l_images=$(docker ps --format '{{ .Names }}')
+      local IFS=$'\n'
+      COMPREPLY+=($(compgen -W "${l_images}" -- ${cur}))
+  fi
+}
+complete -F __docker-ip_cpl docker-ip
+
 function gogdb() {
   local l_file=$1;   shift
 
