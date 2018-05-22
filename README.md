@@ -8,6 +8,7 @@
     - [envloader](#envloader)
     - [historysync](#historysync)
     - [lastdir](#lastdir)
+    - [aliases](#aliases)
     - [git](#git)
     - [cf](#cf)
     - [bosh](#bosh)
@@ -241,6 +242,41 @@ Synchronize command history between bash instances.
 Remember last working directory and use it for future new bash sessions.
 There is no api for this module, everything work by pushing special commands to
 [cdevent](#cdevent) module.
+
+
+## aliases
+
+**requires**: none
+
+Bunch of pre-defined bash aliases and functions
+
+### Bash aliases functions
+
+| Alias | Command                                            | Description                                                 |
+|-------|----------------------------------------------------|-------------------------------------------------------------|
+| rm    | ```rm -i```                                        | enable confirmation prompt by default                       |
+| l     | ```ls -c -h -l --color=auto```                     | sort by name, human readbale sizes, list display and colors |
+| ll    | ```l -a```                                         | like `l` with hidden files                                  |
+| p     | ```pwd```                                          | display current working directory                           |
+| h     | ```cf ~```                                         | change to home directory                                    |
+| k     | ```cd ..```                                        | back to parent directory                                    |
+| e     | ```TERM=xterm-256color emacs -nw --no-site-file``` | run emacs with color compatibility                          |
+| c     | ```clear```                                        | clear screen                                                |
+| ps    | ```ps auxw --sort=uid,pid,cmd```                   | list all processes with sort options                        |
+| sudo  | ```sudo ```                                        | wraps `sudo` in alias, allowing to run aliases with sudo    |
+| tf    | ```terraform```                                    | runs terraform (Hashicorp product)                          |
+
+
+### Helper functions
+
+
+| Function                     | Description                                                                                   |
+|------------------------------|-----------------------------------------------------------------------------------------------|
+| ```grip-start```             | runs [grip](https://github.com/joeyespo/grip) docker image for current directory              |
+| ```grip-stop```              | stops [grip](https://github.com/joeyespo/grip) docker container running for current directory |
+| ```grip-show```              | opens running grip url in web browser using `sensible-browser`                                |
+| ```docker-ip <name-or-id>``` | display docker internal IP for container `name-or-id` with completion                         |
+| ```gogdb <bin>```            | run `<bin>` wrapped in `gdb` with Golang bindings                                             |
 
 
 ## git
