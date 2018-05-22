@@ -35,7 +35,7 @@ function grip-show {
 
 function docker-ip {
   local l_container=$1; shift;
-  docker inspect ${l_container} -f '{{ .NetworkSettings.IPAddress }}'
+  docker inspect ${l_container} -f '{{ range .NetworkSettings.Networks }}{{.IPAddress}}{{ end }}'
 }
 
 function __docker-ip_cpl {
