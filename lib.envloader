@@ -89,7 +89,9 @@ function envloader_edit() {
 
   cp ${p_file} ${l_tmp}
   chmod u+w ${p_file}
+  echo '${l_edit} ${l_tmp}'
   ${l_edit} ${l_tmp}
+
   cp ${l_tmp} ${p_file}
   chmod u-w ${p_file}
   rm -f ${l_tmp}
