@@ -48,6 +48,91 @@ function bosh1_disable_prompt() {
   BOSH1_PROMPT_ENABLED=0
 }
 
+function bosh_reset_cache() {
+  rm -f ${HOME}/.bosh/cache-*
+}
+
+function __bosh2_get_deployments() {
+  local l_env=$1; shift
+  bosh -e ${l_env} deployments --json | jq -r .Tables[].Rows[].name
+}
+
+function __bosh2_list_deployments() {
+  local l_env=$1; shift
+  local l_cache="${HOME}/.bosh/cache-${l_env}-deployments"
+
+  if [ ! -f "${l_cache}" ]; then
+      __bosh2_update_deployments "${l_env}" "${l_cache}"
+  fi
+  cat ${l_cache}
+}
+
+function __bosh2_update_deployments() {
+  local l_env=$1; shift
+  local l_cache=$1; shift
+  __bosh2_get_deployments ${l_env} >> "${l_cache}"
+}
+
+function __bosh2_get_instances() {
+  local l_env=$1; shift
+  local l_dep=$1; shift
+  bosh -e ${l_env} -d ${l_dep} instances --json | jq -r .Tables[].Rows[].instance
+}
+
+function __bosh2_list_instances() {
+  local l_env=$1; shift
+  local l_dep=$1; shift
+  local l_cache="${HOME}/.bosh/cache-${l_env}-${l_dep}-instances"
+
+  if [ ! -f "${l_cache}" ]; then
+      __bosh2_update_instances "${l_env}" "${l_dep}" "${l_cache}"
+  fi
+  cat ${l_cache}
+}
+
+function __bosh2_update_instances() {
+  local l_env=$1; shift
+  local l_dep=$1; shift
+  local l_cache=$1; shift
+  __bosh2_get_instances ${l_env} ${l_dep} >> "${l_cache}"
+}
+
+function __bosh2_parse_env() {
+  local args
+  args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+  local cur prev words cword split
+  _init_completion -s || return
+
+  i=1
+  env=""
+  while [ "${i}" -le "${cword}" ]; do
+    if [ "${words[${i}]}" == "-e" -o "${words[${i}]}" == "--environment" ]; then
+        n=$((i+1))
+        env=${words[${n}]}
+    fi
+    i=$((i+1))
+  done
+  echo ${env}
+}
+
+function __bosh2_parse_deployment() {
+  local args
+  args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+  local cur prev words cword split
+  _init_completion -s || return
+
+  i=1
+  env=""
+  while [ "${i}" -le "${cword}" ]; do
+    if [ "${words[${i}]}" == "-d" -o "${words[${i}]}" == "--deployment" ]; then
+        n=$((i+1))
+        dep=${words[${n}]}
+    fi
+    i=$((i+1))
+  done
+  echo ${dep}
+}
+
 function __bosh2_list_envs() {
   bosh environments --json | jq -r '.Tables[].Rows[].alias'
 }
@@ -62,6 +147,17 @@ __bosh2_complete_cli() {
 
   if [ "${prev}" == "-e" -o "${prev}" == "--environment" ]; then
       COMPREPLY+=($(compgen -W "$(__bosh2_list_envs)" -- ${cur}))
+  elif [ "${prev}" == "-d" -o "${prev}" == "--deployment" ]; then
+      local env=$(__bosh2_parse_env)
+      if [ ! -z "${env}" ]; then
+          COMPREPLY+=($(compgen -W "$(__bosh2_list_deployments ${env})" -- ${cur}))
+      fi
+  elif [ "${prev}" == "ssh" ]; then
+      local env=$(__bosh2_parse_env)
+      local dep=$(__bosh2_parse_deployment)
+      if [ ! -z "${env}" -a ! -z "${dep}" ]; then
+          COMPREPLY+=($(compgen -W "$(__bosh2_list_instances ${env} ${dep})" -- ${cur}))
+      fi
   else
     # Only split on newlines
     local IFS=$'\n'
