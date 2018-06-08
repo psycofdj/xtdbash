@@ -2,6 +2,26 @@
 
 export CF_PROMPT_ENABLED=0
 
+
+function cf() {
+  local l_args=( "$@" )
+  >/tmp/cf-err
+  /usr/local/bin/cf ${l_args[@]}  1> >(tee /tmp/cf-err)
+  if [ $? -ne 0 ]; then
+      grep -q "Authentication has expired" /tmp/cf-err && {
+        /usr/local/bin/cf login && {
+          /usr/local/bin/cf ${l_args[@]}
+        }
+      }
+      grep -q "Not logged in" /tmp/cf-err && {
+        /usr/local/bin/cf login && {
+          /usr/local/bin/cf ${l_args[@]}
+        }
+      }
+
+  fi
+}
+
 function __cf_get_org_space() {
   local l_file="$(readlink -m ${HOME}/.cf/config.json)"
   if [ ! -f "${l_file}" ]; then
