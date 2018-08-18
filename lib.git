@@ -16,7 +16,7 @@ function __git_update_labels() {
           l_color="lightyellow"
       test -z "$(git status -s --untracked-files=no)"     || \
           l_color="lightred"
-      promptcmd_add_labels "git:${l_branch}|${l_color}"
+      promptcmd_add_labels "g:${l_branch}|${l_color}"
   fi
 }
 

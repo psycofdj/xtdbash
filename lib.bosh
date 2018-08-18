@@ -1,26 +1,26 @@
 #!bin/bash
 
-export BOSH1_PROMPT_ENABLED=0
 
-function __bosh1_get_target() {
-  local l_file="$(readlink -m ${HOME}/.bosh_config)"
-  if [ ! -f "${l_file}" ]; then
-      return 1
-  fi
+export BOSH_PROMPT_ENABLED=0
+export BOSH_IDENTITY=""
+export BOSH_NAME=""
 
-  cat ${l_file} | grep 'target_name' | cut -d' ' -f2- 2>/dev/null
-  return $?
-}
-
-function __bosh1_update_target() {
-  test ${BOSH1_PROMPT_ENABLED} -eq 0 && {
+function __bosh_update_target() {
+  test ${BOSH_PROMPT_ENABLED} -eq 0 && {
     return 0
   }
 
   local l_color=""
-  local l_name=$(__bosh1_get_target)
+  local l_ident="${BOSH_CLIENT}:${BOSH_ENVIRONMENT}:${BOSH_CLIENT_SECRET}:${BOSH_ALL_PROXY}:${BOSH_CA_CERT}"
+  if [ "${l_ident}" != "${BOSH_IDENTITY}" ]; then
+      BOSH_IDENTITY="${l_ident}"
+      if [ "${l_ident}" != "::::" ]; then
+          local l_name=$(bosh environment --json | jq -r .Tables[].Rows[].name 2>/dev/null)
+          BOSH_NAME="${l_name}"
+      fi
+  fi
 
-  if [ -z "${l_name}" ]; then
+  if [ -z "${BOSH_NAME}" ]; then
       return 0
   fi
 
@@ -33,71 +33,67 @@ function __bosh1_update_target() {
   elif [[ "${l_name}" == *"dev"* ]]; then
       l_color="lightyellow"
   else
-    l_color="lightblue"
+    l_color="lightyellow"
   fi
 
-  promptcmd_add_labels "bosh:${l_name}|${l_color}"
+  promptcmd_add_labels "b:${BOSH_NAME}|${l_color}"
 }
 
-function bosh1_enable_prompt() {
-  BOSH1_PROMPT_ENABLED=1
-  promptcmd_push "__bosh1_update_target"
+function bosh_enable_prompt() {
+  BOSH_PROMPT_ENABLED=1
+  promptcmd_push "__bosh_update_target"
 }
 
-function bosh1_disable_prompt() {
-  BOSH1_PROMPT_ENABLED=0
+function bosh_disable_prompt() {
+  BOSH_PROMPT_ENABLED=0
 }
 
-function bosh_reset_cache() {
-  rm -f ${HOME}/.bosh/cache-*
-}
-
-function __bosh2_get_deployments() {
+function __bosh_get_deployments() {
   local l_env=$1; shift
   bosh -e ${l_env} deployments --json | jq -r .Tables[].Rows[].name
 }
 
-function __bosh2_list_deployments() {
+function __bosh_list_deployments() {
   local l_env=$1; shift
   local l_cache="${HOME}/.bosh/cache-${l_env}-deployments"
 
   if [ ! -f "${l_cache}" ]; then
-      __bosh2_update_deployments "${l_env}" "${l_cache}"
+      __bosh_update_deployments "${l_env}" "${l_cache}"
   fi
   cat ${l_cache}
 }
 
-function __bosh2_update_deployments() {
+function __bosh_update_deployments() {
   local l_env=$1; shift
   local l_cache=$1; shift
-  __bosh2_get_deployments ${l_env} >> "${l_cache}"
+  __bosh_get_deployments ${l_env} >> "${l_cache}"
 }
 
-function __bosh2_get_instances() {
+function __bosh_get_instances() {
   local l_env=$1; shift
   local l_dep=$1; shift
   bosh -e ${l_env} -d ${l_dep} instances --json | jq -r .Tables[].Rows[].instance
 }
 
-function __bosh2_list_instances() {
+function __bosh_list_instances() {
   local l_env=$1; shift
   local l_dep=$1; shift
   local l_cache="${HOME}/.bosh/cache-${l_env}-${l_dep}-instances"
 
   if [ ! -f "${l_cache}" ]; then
-      __bosh2_update_instances "${l_env}" "${l_dep}" "${l_cache}"
+      __bosh_update_instances "${l_env}" "${l_dep}" "${l_cache}"
   fi
   cat ${l_cache}
 }
 
-function __bosh2_update_instances() {
+function __bosh_update_instances() {
   local l_env=$1; shift
   local l_dep=$1; shift
   local l_cache=$1; shift
-  __bosh2_get_instances ${l_env} ${l_dep} >> "${l_cache}"
+  __bosh_get_instances ${l_env} ${l_dep} >> "${l_cache}"
 }
 
-function __bosh2_parse_env() {
+function __bosh_parse_env() {
   local args
   args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
   local cur prev words cword split
@@ -115,7 +111,7 @@ function __bosh2_parse_env() {
   echo ${env}
 }
 
-function __bosh2_parse_deployment() {
+function __bosh_parse_deployment() {
   local args
   args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
   local cur prev words cword split
@@ -133,11 +129,11 @@ function __bosh2_parse_deployment() {
   echo ${dep}
 }
 
-function __bosh2_list_envs() {
+function __bosh_list_envs() {
   bosh environments --json | jq -r '.Tables[].Rows[].alias'
 }
 
-__bosh2_complete_cli() {
+__bosh_complete_cli() {
   # All arguments except the first one
   local args
   args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
@@ -146,17 +142,17 @@ __bosh2_complete_cli() {
   _init_completion -s || return
 
   if [ "${prev}" == "-e" -o "${prev}" == "--environment" ]; then
-      COMPREPLY+=($(compgen -W "$(__bosh2_list_envs)" -- ${cur}))
+      COMPREPLY+=($(compgen -W "$(__bosh_list_envs)" -- ${cur}))
   elif [ "${prev}" == "-d" -o "${prev}" == "--deployment" ]; then
-      local env=$(__bosh2_parse_env)
+      local env=$(__bosh_parse_env)
       if [ ! -z "${env}" ]; then
-          COMPREPLY+=($(compgen -W "$(__bosh2_list_deployments ${env})" -- ${cur}))
+          COMPREPLY+=($(compgen -W "$(__bosh_list_deployments ${env})" -- ${cur}))
       fi
   elif [ "${prev}" == "ssh" ]; then
-      local env=$(__bosh2_parse_env)
-      local dep=$(__bosh2_parse_deployment)
+      local env=$(__bosh_parse_env)
+      local dep=$(__bosh_parse_deployment)
       if [ ! -z "${env}" -a ! -z "${dep}" ]; then
-          COMPREPLY+=($(compgen -W "$(__bosh2_list_instances ${env} ${dep})" -- ${cur}))
+          COMPREPLY+=($(compgen -W "$(__bosh_list_instances ${env} ${dep})" -- ${cur}))
       fi
   else
     # Only split on newlines
@@ -168,4 +164,4 @@ __bosh2_complete_cli() {
   return 0
 }
 
-complete -F __bosh2_complete_cli bosh
+complete -o default -F __bosh_complete_cli bosh
