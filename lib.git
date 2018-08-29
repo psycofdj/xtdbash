@@ -9,6 +9,10 @@ function __git_update_labels() {
   }
 
   local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  l_count=$(echo -n "${l_branch}" | wc -c)
+  if [ ${l_count} -gt 23 ]; then
+      l_branch="${l_branch:0:20}..."
+  fi
 
   if [ ! -z "${l_branch}" ]; then
       local l_color="lightgreen"
