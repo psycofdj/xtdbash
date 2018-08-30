@@ -1,6 +1,16 @@
 #!/bin/bash
 
 export CDEVENT_CMDS=""
+export CDEVENT_CMDS_PRE=""
+
+function cdevent_push_pre() {
+  local l_cmd="$1"; shift
+
+  if [ ! -z "${CDEVENT_CMDS_PRE}" ]; then
+      CDEVENT_CMDS_PRE="${CDEVENT_CMDS_PRE};"
+  fi
+  CDEVENT_CMDS_PRE="${CDEVENT_CMDS_PRE}${l_cmd}"
+}
 
 function cdevent_push() {
   local l_cmd="$1"; shift
@@ -11,8 +21,34 @@ function cdevent_push() {
   CDEVENT_CMDS="${CDEVENT_CMDS}${l_cmd}"
 }
 
-function __cdevent_run() {
-  eval "${CDEVENT_CMDS}"
+function __cdevent_run_pre() {
+  local l_args="$@"
+  local l_list="${CDEVENT_CMDS_PRE}"
+  local l_ret=0
+  if [ ! -z "${l_list}" ]; then
+      l_list="${l_list};"
+  fi
+  while read -d ";" cmd; do
+    eval "${cmd} \"${l_args}\"" || {
+      l_ret=1
+    }
+  done < <(echo "${l_list}")
+  return ${l_ret}
 }
 
-decorate_builtin cd "" __cdevent_run
+function __cdevent_run() {
+  local l_args="$@"
+  local l_list="${CDEVENT_CMDS}"
+  local l_ret=0
+  if [ ! -z "${l_list}" ]; then
+      l_list="${l_list};"
+  fi
+  while read -d ";" cmd; do
+    eval "${cmd} \"${l_args}\"" || {
+      l_ret=1
+    }
+  done < <(echo "${l_list}")
+  return ${l_ret}
+}
+
+decorate_builtin cd __cdevent_run_pre __cdevent_run

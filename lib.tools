@@ -30,9 +30,12 @@ function decorate_builtin() {
   local l_tmp=$(mktemp)
   cat - > ${l_tmp} <<EOF
 function ${p_fn} () {
+  local ret=0;
   ${p_pre}
-  builtin ${p_fn} "\$@";
-  local ret=\$?;
+  if [ \$? -eq 0 ]; then
+    builtin ${p_fn} "\$@";
+    ret=\$?;
+  fi;
   ${p_post}
   return "\$ret";
 }
