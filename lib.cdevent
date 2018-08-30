@@ -43,11 +43,19 @@ function __cdevent_run() {
   if [ ! -z "${l_list}" ]; then
       l_list="${l_list};"
   fi
+  # transform cmds string into array to avoid redirecting
+  # when running individual commands  (see tty -s in lib.envloader)
+  declare -a l_cmds=() || return
   while read -d ";" cmd; do
+    l_cmds+=( $cmd )
+  done < <(echo "${l_list}")
+  # loop cmds without redirecting (see tty -s in lib.envloader)
+  for cmd in ${l_cmds[@]}; do
     eval "${cmd} \"${l_args}\"" || {
       l_ret=1
+      break
     }
-  done < <(echo "${l_list}")
+  done
   return ${l_ret}
 }
 
