@@ -1,0 +1,82 @@
+#! /bin/bash
+
+function cdstack_enable ()
+{
+  cdevent_push_pre __cdstack_cd
+}
+
+function __cdstack_cd ()
+{
+  declare pushd_silent=t
+  case "$1" in
+    - ) builtin pushd +1 >/dev/null
+        return 1
+        ;;
+    + ) builtin pushd -0 >/dev/null
+        return 1
+        ;;
+    -s ) __cdstack_show_stack
+         return 1
+         ;;
+    -c* ) __cdstack_clear_stack ${1#-c}
+          __cdstack_show_stack
+          return 1
+          ;;
+    -* ) declare i=${1#-}
+         if [ -z "${i##[0-9]*}" ]
+         then
+           builtin pushd +$i >/dev/null
+         fi
+         return 1
+         ;;
+  esac
+  declare i=1 dirs="$(dirs -l)"
+  builtin pushd ${1:-~} >/dev/null 2>/dev/null || {
+    return 0
+  }
+  for d in $dirs
+  do if [ "$d" = "$PWD" ]
+     then builtin popd +$i >/dev/null; break; fi
+     let i=i+1
+  done
+  return 1
+}
+
+function __cdstack_clear_stack ()
+{
+  case "$1" in
+     ..* ) declare j=${1#..}
+           if [ -n "${j##[0-9]*}" ]; then return 1; fi
+           let "j=j+1"
+           while let "j>0"
+           do builtin popd +0 >/dev/null 2>/dev/null || return; let "j=j-1"; done
+           ;;
+     *.. ) declare i=${1%..}
+           if [ -n "${i##[0-9]*}" ]; then return 1; fi
+           if [ $i -eq 0 ]; then let "i=1"; fi
+           while builtin popd +$i >/dev/null 2>/dev/null; do : nothing; done
+           ;;
+    *..* ) declare i=${1%..*} j=${1#*..}
+           if [ -n "${i##[0-9]*}" ] || [ -n "${j##[0-9]*}" ]
+           then return; fi
+           let "j=j-i+1"
+           while let "j>0"
+           do builtin popd +$i >/dev/null 2>/dev/null || return; let "j=j-1"; done
+           ;;
+      '' ) while builtin popd +1 >/dev/null 2>/dev/null; do : nothing; done
+           ;;
+       * ) declare i=$1
+           if [ -n "${i##[0-9]*}" ]; then return 1; fi
+           builtin popd +$i >/dev/null 2>/dev/null || return
+           ;;
+  esac
+  return 0
+}
+
+function __cdstack_show_stack ()
+{
+  declare -i i=0
+  for d in $(dirs -l)
+  do echo -e "[$i]\t$d"; let "i=i+1"; done
+  return 0
+}

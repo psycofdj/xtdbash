@@ -6,6 +6,9 @@ export ENVLOADER_VARIABLES=""
 export ENVLOADER_VERBOSE
 export ENVLOADER_PROMPT_ENABLED=0
 
+if [ "Darwin" == $(uname -s) ]; then
+  export IS_DARWIN=1
+fi
 
 if [ -z "${ENVLOADER_VERBOSE}" ]; then
     ENVLOADER_VERBOSE=0
@@ -80,16 +83,18 @@ function envloader_edit() {
       chmod 400 "${p_file}"
   fi
 
-  local l_tmp=$(tempfile -s .json)
+  if [ -z "$IS_DARWIN" ]; then
+    local l_tmp=$(tempfile -s .json)
+  else
+    local l_tmp=$(mktemp --suffix .json)
+  fi
   local l_edit=${EDITOR}
   if [ -z "${l_edit}" ]; then
       l_edit="vi"
   fi
 
-
   cp ${p_file} ${l_tmp}
   chmod u+w ${p_file}
-  echo '${l_edit} ${l_tmp}'
   ${l_edit} ${l_tmp}
 
   cp ${l_tmp} ${p_file}

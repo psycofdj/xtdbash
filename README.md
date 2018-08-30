@@ -31,6 +31,7 @@
 - [bosh](#bosh)               : display current [bosh](https://bosh.io/) target in prompt line and completion
 - [godev](#godev)             : navigate among *GO* projects available in current GOPATH (with completion)
 - [cdevent](#cdevent)         : manage commands to run when changing directory
+- [cdstack](#cdstack)         : stack directories visited in current bash (à la `pushd`/`popd`)
 - [tools](#tools)             : various helper functions
 
 # Quick start
@@ -57,7 +58,8 @@ xtdbash_init \
   git \
   cf \
   bosh \
-  godev
+  godev \
+  cdstack
 
 # sources any file found in ~/.bashrc.*
 xtdbash_externals
@@ -68,11 +70,11 @@ envloader_enable_prompt
 # (optional) activates git branch in prompt line
 git_enable_prompt
 
-# (optional) add cloud floundry target prompt label
+# (optional) add cloud foundry target prompt label
 cf_enable_prompt
 
 # (optional) add bosh prompt labels (bosh V1 only)
-bosh1_enable_prompt
+bosh_enable_prompt
 
 # activates screen-wide prompt line with side labels
 promptcmd_enable
@@ -80,9 +82,25 @@ promptcmd_enable
 # register godev search paths
 godev_add_namespace code.cloudfoundry.org 1
 godev_add_namespace github.com 2
+
+# activates stacking of visited directories
+cdstack_enable
 ```
 
 **Note**: Every module is optional but some require others.
+
+**Note MacOS**: In case of error like the following
+```
+readlink: illegal option -- f
+usage: readlink [-n] [file ...]
+usage: dirname path
+xtdbash error: enable to find requested module aliases
+```
+you can add `GNU coreutils` to your path to get appropriate `readlink`, `dirname`...
+```bash
+PATH=/usr/local/opt/coreutils/libexec/gnubin:${PATH}
+```
+I don't remember if this directory comes with `homebrew` or `port` installer.
 
 # API reference
 
@@ -319,7 +337,7 @@ why cloud foundry plugins don't have builtin bash completion)
 This module shows current bosh-V1 target in promptcmd labels. It also provides
 completion for bosh-V2
 
-- ```bosh1_enable_prompt()``` : detects current bosh-V1 target name and push it as label
+- ```bosh_enable_prompt()``` : detects current bosh-V1 target name and push it as label
   in promptcmd.
 
 **Live demo**
@@ -344,10 +362,10 @@ In addition, the module comes with a bash-completion script that completes
 user input according to matching folder of *GOPATH*. Matches include repository
 names (eg. github.com), repository namespaces and project names.
 
-- ```godev(name)``` : searches for given name in current *GOPATH* and ```cd``` into
+- ```godev name```: searches for given name in current *GOPATH* and ```cd``` into
   directory if a single item is found.
 
-- ```godev_add_namespace(host deth)``` : add given repository host in search paths.
+- ```godev_add_namespace host deth```: add given repository host in search paths.
   second arguments tells how deep godev and its completion should search. Typically
   in *github.com's* hierarchy, we want to search in two levels : **(namespace)/(project)**.
   In other repositories such as *code.cloudfoundry.com*, we only need 1 layer.
@@ -363,24 +381,39 @@ names (eg. github.com), repository namespaces and project names.
 Manage a list of commands to run when changing directory. This works by decorating
 the builtin command ```cd``` by an internal function.
 
+- ```cdevent_push cmd```: adds **cmd** to the command list to run when changing directory.
 
-- ```cdevent_push(cmd)```: adds **cmd** to the command list to run when changing directory.
+## cdstack
 
+**requires**: [cdevent](#cdevent)
+
+Decorate `cd` builtin to stack visited directories. This stack is handled with specific
+options to `cd` command:
+
+- `-s`: list all directories in the stack, most recently visited first. Directories are
+numbered starting from 0.
+- `-<n>`: cd to <n>th directory in the stack. Usefull right after `cd -s`.
+- `-`: cd to previous directory in stack, use `cd -s` to view the stack.
+- `+`: cd to last directory in stack, use `cd -s` to view the stack.
+- `-c`: clear the stack. It is then initialized with the current directory.
+- `-c <n>`: remove the nth directory from stack. `cd -c 0` will remove the first and go to
+the previous directory.
+- `-c <k>..<n>`: remove directories starting  from kth to nth, then go to first directory
+in the modified stack. If `k` is omitted, it's replaced by 0, if `n` is omitted, it's
+replaced by the last index.
 
 ## tools
 
-**requires**: none
-
 Provides a list of helper functions.
 
-- ```decorate_builtin(builtin pre post)```: decorates the builtin function **builtin** with
+- ```decorate_builtin builtin pre post```: decorates the builtin function **builtin** with
   **pre** that runs before the builtin and **post** that runs after the builtin
 
 
-- ```decorate_function(fn pre post)```: decorates the function **fn** with
+- ```decorate_function fn pre post```: decorates the function **fn** with
   **pre** that runs before the function and **post** that runs after the function
 
-- ```strlist_add(name value)```: appends **value** to semi-column separated string list
+- ```strlist_add name value```: appends **value** to semi-column separated string list
   hold by variable **name**
 
 <!-- Local Variables: -->
