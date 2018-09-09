@@ -6,7 +6,7 @@ function strlist_add() {
   local l_varValue="${!l_varName}"
   local c_var;
 
-  for c_var in $@; do
+  for c_var in "$@"; do
     if [ ! -z "${l_varValue}" ]; then
         l_varValue="${l_varValue};"
     fi

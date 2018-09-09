@@ -22,13 +22,13 @@ function cdevent_push() {
 }
 
 function __cdevent_run_pre() {
-  local l_args="$@"
+  local l_args="$*"
   local l_list="${CDEVENT_CMDS_PRE}"
   local l_ret=0
   if [ ! -z "${l_list}" ]; then
       l_list="${l_list};"
   fi
-  while read -d ";" cmd; do
+  while read -r -d ";" cmd; do
     eval "${cmd} \"${l_args}\"" || {
       l_ret=1
     }
@@ -37,7 +37,7 @@ function __cdevent_run_pre() {
 }
 
 function __cdevent_run() {
-  local l_args="$@"
+  local l_args="$*"
   local l_list="${CDEVENT_CMDS}"
   local l_ret=0
   if [ ! -z "${l_list}" ]; then
@@ -46,11 +46,11 @@ function __cdevent_run() {
   # transform cmds string into array to avoid redirecting
   # when running individual commands  (see tty -s in lib.envloader)
   declare -a l_cmds=() || return
-  while read -d ";" cmd; do
+  while read -r -d ";" cmd; do
     l_cmds+=( $cmd )
   done < <(echo "${l_list}")
   # loop cmds without redirecting (see tty -s in lib.envloader)
-  for cmd in ${l_cmds[@]}; do
+  for cmd in "${l_cmds[@]}"; do
     eval "${cmd} \"${l_args}\"" || {
       l_ret=1
       break

@@ -1,7 +1,5 @@
 #!bin/bash
 
-declare -a __envloader_vars
-
 export ENVLOADER_VARIABLES=""
 export ENVLOADER_VERBOSE
 export ENVLOADER_PROMPT_ENABLED=0
@@ -19,12 +17,12 @@ if [ -z "${BASE_PATH}" ]; then
 fi
 
 function __envloader_error() {
-  local p_msg=$@;
+  local p_msg=$*;
   echo >&2 "$(tput setaf 1)envloader error$(tput sgr0): ${p_msg}"
 }
 
 function __envloader_verbose() {
-  local p_msg=$@;
+  local p_msg=$*;
 
   if [ "${ENVLOADER_VERBOSE}" == "1" ]; then
       echo "$(tput setaf 3)envloader$(tput sgr0): ${p_msg}"
@@ -44,7 +42,7 @@ function __envloader_save_vars() {
   local p_file=$1; shift
   local c_var
 
-  for c_var in $(cat "${p_file}" | jq -r 'to_entries[] | "\(.key)"' 2>/dev/null ); do
+  for c_var in $(jq -r 'to_entries[] | "\(.key)"' < "${p_file}" 2>/dev/null ); do
     strlist_add ENVLOADER_VARIABLES "${c_var}"
   done
 }
@@ -83,11 +81,8 @@ function envloader_edit() {
       chmod 400 "${p_file}"
   fi
 
-  if [ -z "$IS_DARWIN" ]; then
-    local l_tmp=$(tempfile -s .json)
-  else
-    local l_tmp=$(mktemp --suffix .json)
-  fi
+
+  local l_tmp=$(mktemp --suffix .json)
   local l_edit=${EDITOR}
   if [ -z "${l_edit}" ]; then
       l_edit="vi"

@@ -3,12 +3,12 @@
 export GODEV_NAMESPACES=""
 
 function __godev_error() {
-  local p_msg=$@;
+  local p_msg=$*;
   echo >&2 "$(tput setaf 1)godev error$(tput sgr0): ${p_msg}"
 }
 
 function __godev_warning() {
-  local p_msg=$@;
+  local p_msg=$*;
   echo "$(tput setaf 3)godev warning$(tput sgr0): ${p_msg}"
 }
 
@@ -59,17 +59,18 @@ function godev() {
   elif [ ${#l_items[@]} -gt 1 ]; then
       __godev_warning "multiple results found"
       local c_val
-      for c_val in $(echo ${l_items[@]}); do
+      for c_val in "${l_items[@]}"; do
         echo "-> ${c_val}"
       done
       return 1
   else
-    cd "${l_items[0]}"
+    cd "${l_items[0]}" || return 1
   fi
 }
 
 __godev_complete() {
   local l_spaces
+  # shellcheck disable=SC2034
   local cur prev words cword split
   _init_completion -s || return
 
@@ -82,7 +83,7 @@ __godev_complete() {
         c_idx=$((c_idx + 1))
         local l_depth=${l_spaces[${c_idx}]}
         c_idx=$((c_idx + 1))
-        local l_dirs=$(find "${GOPATH}/src/${l_host}" -maxdepth ${l_depth} -type d | xargs -n1 basename)
+        local l_dirs=$(find "${GOPATH}/src/${l_host}" -maxdepth ${l_depth} -type d -print0 | xargs -0 -n1 basename)
         local IFS=$'\n'
         COMPREPLY+=($(compgen -W "${l_dirs}" -- ${cur}))
       done

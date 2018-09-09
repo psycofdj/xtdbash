@@ -7,6 +7,7 @@ function cdstack_enable ()
 
 function __cdstack_cd ()
 {
+  # shellcheck disable=SC2034
   declare pushd_silent=t
   case "$1" in
     - ) builtin pushd +1 >/dev/null

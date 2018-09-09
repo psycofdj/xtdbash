@@ -39,6 +39,7 @@ function docker-ip {
 }
 
 function __docker-ip_cpl {
+  # shellcheck disable=SC2034
   local cur prev words cword split
   _init_completion -s || return
 
@@ -72,5 +73,6 @@ function gogdb() {
 }
 
 function ergrep() {
-  e $(\grep -n $@ | cut -d: -f1-2 | sort -u)
+  local l_bin=$(which grep)
+  e $(${l_bin} -n "$@" | cut -d: -f1-2 | sort -u)
 }
