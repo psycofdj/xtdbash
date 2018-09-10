@@ -7,7 +7,7 @@ export PROMPT_COMMAND="RET=\$? promptcmd_run"
 
 function promptcmd_add_labels() {
   local c_var
-  for c_var in $@; do
+  for c_var in "$@"; do
     strlist_add PROMPTCMD_LABELS "${c_var}"
   done
 }

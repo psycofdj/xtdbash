@@ -5,17 +5,19 @@ export CF_PROMPT_ENABLED=0
 
 function cf() {
   local l_args=( "$@" )
-  >/tmp/cf-err
-  /usr/local/bin/cf ${l_args[@]}  1> >(tee /tmp/cf-err)
+  local l_cf=$(which cf)
+  true >/tmp/cf-err
+  ${l_cf} "${l_args[@]}"  1> >(tee /tmp/cf-err)
+  # shellcheck disable=SC2181
   if [ $? -ne 0 ]; then
       grep -q "Authentication has expired" /tmp/cf-err && {
-        /usr/local/bin/cf login && {
-          /usr/local/bin/cf ${l_args[@]}
+        ${l_cf} login && {
+          ${l_cf} "${l_args[@]}"
         }
       }
       grep -q "Not logged in" /tmp/cf-err && {
-        /usr/local/bin/cf login && {
-          /usr/local/bin/cf ${l_args[@]}
+        ${l_cf} login && {
+          ${l_cf} "${l_args[@]}"
         }
       }
 
@@ -28,8 +30,7 @@ function __cf_get_org_space() {
       return 0
   fi
 
-  cat ${l_file} | \
-      jq -r '. | "\(.OrganizationFields.Name):\(.SpaceFields.Name)"' 2>/dev/null
+  jq -r '. | "\(.OrganizationFields.Name):\(.SpaceFields.Name)"' 2>/dev/null < ${l_file}
   return $?
 }
 
@@ -37,8 +38,8 @@ function __cf_has_changes() {
   local l_current="$(readlink -m ${HOME}/.cf/config.json)"
   local l_lastsave="$(readlink -m ${HOME}/.cf/targets/current)"
 
-  if [ ! -f "${l_current}" -o ! -f "${l_lastsave}" ]; then
-      return -1
+  if [ ! -f "${l_current}" ] || [ ! -f "${l_lastsave}" ]; then
+      return 1
   fi
 
   cmp -s ${l_current} ${l_lastsave}
@@ -58,7 +59,7 @@ function __cf_update_target() {
 
   local l_name=$(basename ${l_file})
   local l_target=${l_name%%.*}
-  local l_context=$(__cf_get_org_space)
+  # local l_context=$(__cf_get_org_space)
   local l_type="c"
   local l_label=${l_target}
 
@@ -119,13 +120,14 @@ __cf_complete_cli() {
 }
 
 __cf_complete_targets() {
+  # shellcheck disable=SC2034
   local cur prev words cword split
   _init_completion -s || return
-  local l_cmd="${words[@]:0:${cword}}"
+  local l_cmd="${words[*]:0:${cword}}"
 
   if [[ "${l_cmd}" =~ ^.*(set-target|delete-target)( -f)?$ ]];then
-      local targets=$(find ${HOME}/.cf/targets/*.config.json | \
-                           xargs -n1 basename | \
+      local targets=$(find ${HOME}/.cf/targets/*.config.json -print0 | \
+                           xargs -0 -n1 basename | \
                            sed 's/.config.json//g')
       local IFS=$'\n'
       COMPREPLY+=($(compgen -W "${targets}" -- ${cur}))

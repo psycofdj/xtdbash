@@ -102,7 +102,7 @@ function __bosh_parse_env() {
   i=1
   env=""
   while [ "${i}" -le "${cword}" ]; do
-    if [ "${words[${i}]}" == "-e" -o "${words[${i}]}" == "--environment" ]; then
+    if [ "${words[${i}]}" == "-e" ] || [ "${words[${i}]}" == "--environment" ]; then
         n=$((i+1))
         env=${words[${n}]}
     fi
@@ -120,7 +120,7 @@ function __bosh_parse_deployment() {
   i=1
   env=""
   while [ "${i}" -le "${cword}" ]; do
-    if [ "${words[${i}]}" == "-d" -o "${words[${i}]}" == "--deployment" ]; then
+    if [ "${words[${i}]}" == "-d" ] || [ "${words[${i}]}" == "--deployment" ]; then
         n=$((i+1))
         dep=${words[${n}]}
     fi
@@ -138,12 +138,13 @@ __bosh_complete_cli() {
   local args
   args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
 
+  # shellcheck disable=SC2034
   local cur prev words cword split
   _init_completion -s || return
 
-  if [ "${prev}" == "-e" -o "${prev}" == "--environment" ]; then
+  if [ "${prev}" == "-e" ] || [ "${prev}" == "--environment" ]; then
       COMPREPLY+=($(compgen -W "$(__bosh_list_envs)" -- ${cur}))
-  elif [ "${prev}" == "-d" -o "${prev}" == "--deployment" ]; then
+  elif [ "${prev}" == "-d" ] || [ "${prev}" == "--deployment" ]; then
       local env=$(__bosh_parse_env)
       if [ ! -z "${env}" ]; then
           COMPREPLY+=($(compgen -W "$(__bosh_list_deployments ${env})" -- ${cur}))
@@ -151,7 +152,7 @@ __bosh_complete_cli() {
   elif [ "${prev}" == "ssh" ]; then
       local env=$(__bosh_parse_env)
       local dep=$(__bosh_parse_deployment)
-      if [ ! -z "${env}" -a ! -z "${dep}" ]; then
+      if [ ! -z "${env}" ] && [ ! -z "${dep}" ]; then
           COMPREPLY+=($(compgen -W "$(__bosh_list_instances ${env} ${dep})" -- ${cur}))
       fi
   else

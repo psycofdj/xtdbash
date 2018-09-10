@@ -414,8 +414,8 @@ Provides a list of helper functions.
   **pre** that runs before the builtin and **post** that runs after the builtin
 
 
-- ```decorate_function fn pre post```: decorates the function **fn** with
-  **pre** that runs before the function and **post** that runs after the function
+<!-- - ```decorate_function fn pre post```: decorates the function **fn** with -->
+<!--   **pre** that runs before the function and **post** that runs after the function -->
 
 - ```strlist_add name value```: appends **value** to semi-column separated string list
   hold by variable **name**

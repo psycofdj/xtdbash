@@ -7,7 +7,7 @@ function __lastdir_save() {
 function __lastdir_load() {
   local l_val=$(cat ${HOME}/.lastdir 2>/dev/null)
   if [[ -d "$l_val" ]]; then
-      cd $l_val
+      cd $l_val || return 1
   fi
 }
 
