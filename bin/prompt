@@ -84,7 +84,7 @@ class Printer:
   def write(self, p_text, p_color, p_blink = False):
     self.m_count += len(p_text.decode("utf-8"))
     l_color = Printer.BASE_COLORS[p_color]
-    if p_blink:
+    if p_blink and (None == os.getenv("PROMTCMD_BLINK_OFF") or 0 == len(os.getenv("PROMTCMD_BLINK_OFF"))):
       sys.stdout.write("\033[%d;5m%s\033[0m" % (l_color, p_text))
     else:
       sys.stdout.write("\033[0;%dm%s\033[0m" % (l_color, p_text))

@@ -5,18 +5,19 @@ export CF_PROMPT_ENABLED=0
 
 function cf() {
   local l_args=( "$@" )
+  local l_cf=$(which cf)
   true >/tmp/cf-err
-  /usr/local/bin/cf "${l_args[@]}"  1> >(tee /tmp/cf-err)
+  ${l_cf} "${l_args[@]}"  1> >(tee /tmp/cf-err)
   # shellcheck disable=SC2181
   if [ $? -ne 0 ]; then
       grep -q "Authentication has expired" /tmp/cf-err && {
-        /usr/local/bin/cf login && {
-          /usr/local/bin/cf "${l_args[@]}"
+        ${l_cf} login && {
+          ${l_cf} "${l_args[@]}"
         }
       }
       grep -q "Not logged in" /tmp/cf-err && {
-        /usr/local/bin/cf login && {
-          /usr/local/bin/cf "${l_args[@]}"
+        ${l_cf} login && {
+          ${l_cf} "${l_args[@]}"
         }
       }
 

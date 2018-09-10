@@ -3,6 +3,7 @@
 
 export PROMPTCMD_COMMANDS=""
 export PROMPT_COMMAND="RET=\$? promptcmd_run"
+#export PROMTCMD_BLINK_OFF=
 
 function promptcmd_add_labels() {
   local c_var

@@ -151,6 +151,10 @@ This module manages commands that must be run between each prompt display.
 
 - ```promptcmd_add_labels(item item...)```: add each arguments int ```PROMPTCMD_LABELS``` list
 
+- env variable `PROMTCMD_BLINK_OFF` controls blinking chars in prompt when previous
+  command returns non zero exit code. Setting `PROMTCMD_BLINK_OFF` to a non-empty value
+  suppresses blinking chars.
+
 ## envloader
 
 **requires**: [cdevent](#cdevent) and [jq (external dep)](https://stedolan.github.io/jq/)
@@ -410,8 +414,8 @@ Provides a list of helper functions.
   **pre** that runs before the builtin and **post** that runs after the builtin
 
 
-- ```decorate_function fn pre post```: decorates the function **fn** with
-  **pre** that runs before the function and **post** that runs after the function
+<!-- - ```decorate_function fn pre post```: decorates the function **fn** with -->
+<!--   **pre** that runs before the function and **post** that runs after the function -->
 
 - ```strlist_add name value```: appends **value** to semi-column separated string list
   hold by variable **name**
