@@ -4,7 +4,7 @@
 alias ssh='LC_ALL=C ssh'
 alias scp='LC_ALL=C scp'
 alias rm='rm -i'
-alias l='ls -c -h -l --color=auto'
+alias l='ls -c -h -v -l --color=auto'
 alias ll='l -a'
 alias p='pwd'
 alias h='cd ~'

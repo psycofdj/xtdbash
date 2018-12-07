@@ -15,7 +15,7 @@ function __bosh_update_target() {
   if [ "${l_ident}" != "${BOSH_IDENTITY}" ]; then
       BOSH_IDENTITY="${l_ident}"
       if [ "${l_ident}" != "::::" ]; then
-          local l_name=$(bosh environment --json | jq -r .Tables[].Rows[].name 2>/dev/null)
+          local l_name=$(bosh environment --json | jq -r .Tables[].Rows[].name 2>/dev/null | sed 's/bosh-//g')
           BOSH_NAME="${l_name}"
       fi
   fi
@@ -25,9 +25,9 @@ function __bosh_update_target() {
   fi
 
   if [[ "${l_name}" == *"prod"* ]]; then
-      l_color="lightred"
-  elif [[ "${l_name}" == *"beta"* ]]; then
       l_color="lightmagenta"
+  elif [[ "${l_name}" == *"beta"* ]]; then
+      l_color="lightcyan"
   elif [[ "${l_name}" == *"qa"* ]]; then
       l_color="lightyellow"
   elif [[ "${l_name}" == *"dev"* ]]; then
