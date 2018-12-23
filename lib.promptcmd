@@ -3,6 +3,7 @@
 
 export PROMPTCMD_COMMANDS=""
 export PROMPT_COMMAND="RET=\$? promptcmd_run"
+#export PROMTCMD_BLINK_OFF=
 
 function promptcmd_add_labels() {
   local c_var
@@ -12,11 +13,11 @@ function promptcmd_add_labels() {
 }
 
 function promptcmd_enable() {
-  local l_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+  local l_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
   export PS1=""
   export COLUMNS
   export PROMPTCMD_LABELS
-  promptcmd_push "LC_ALL=C ${l_dir}/bin/prompt"
+  promptcmd_push "LC_ALL=C \"${l_dir}/bin/prompt\""
 }
 
 function promptcmd_push() {

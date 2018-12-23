@@ -33,8 +33,8 @@ function xtdbash_verbose_off() {
 }
 
 function __xtdbash_load() {
-  local l_lib=$1; shift
-  local l_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/
+  local l_lib="$1"; shift
+  local l_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/
   local l_found=0
   local c_lib;
 
@@ -49,18 +49,18 @@ function __xtdbash_load() {
       return 0
   fi
 
-  local l_file=${l_dir}/lib.${l_lib}
+  local l_file="${l_dir}/lib.${l_lib}"
   if [ -f "${l_file}" ]; then
       __xtdbash_verbose "loading module ${l_lib}"
       # shellcheck disable=SC1090
-      . ${l_file}
+      . "${l_file}"
       if [ ! -z "${XTDBASH_LIBS}" ]; then
           XTDBASH_LIBS="${XTDBASH_LIBS};"
       fi
       XTDBASH_LIBS="${XTDBASH_LIBS}${l_lib}"
       return 0
   else
-    __xtdbash_error "enable to find requested module ${l_lib}"
+    __xtdbash_error "unable to find requested module ${l_lib} in ${l_dir}"
     return 1
   fi
 }
