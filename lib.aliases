@@ -20,7 +20,11 @@ alias sudo='sudo '
 alias tf="terraform"
 
 function grip-start {
-  docker run -d --name $(basename $(pwd))-grip -v $(pwd):/export psycofdj/grip
+  local l_args=""
+  if [ -n "${GITHUB_TOKEN}" ]; then
+      l_args="--pass ${GITHUB_TOKEN}"
+  fi
+  docker run -d --name $(basename $(pwd))-grip -v $(pwd):/export psycofdj/grip ${l_args}
 }
 
 function grip-stop {
