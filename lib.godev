@@ -50,7 +50,7 @@ function godev() {
     c_idx=$((c_idx + 1))
     local l_depth=${l_spaces[${c_idx}]}
     c_idx=$((c_idx + 1))
-    l_items+=($(find "${l_gopath}/src/${l_host}" -maxdepth ${l_depth} -name "*${l_name}*" -type d))
+    l_items+=($(find "${l_gopath}/src/${l_host}" -maxdepth ${l_depth} -name "*${l_name}*"))
   done
 
   if [ ${#l_items[@]} -eq 0 ]; then
