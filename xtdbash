@@ -108,8 +108,9 @@ function xtdbash_externals() {
   local c_file
 
   for c_file in ${l_home}/.bashrc.*; do
+    [ -f "${c_file}" ] || continue
     __xtdbash_verbose "loading external settings ${c_file}"
     # shellcheck disable=SC1090
-    . ${c_file}
+    . "${c_file}"
   done
 }
