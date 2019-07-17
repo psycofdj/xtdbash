@@ -103,7 +103,7 @@ class Printer:
   def write_host(self):
     l_usernameColor = Printer.ITEM_COLORS["username"]["nonroot"];
     if self.m_username in Printer.ITEM_COLORS["username"]:
-      l_usernameColor = Printer.ITEM_COLORS["username"][self.m_username]
+     l_usernameColor = Printer.ITEM_COLORS["username"][self.m_username]
     self.write(self.m_username, l_usernameColor)
     self.write("@",             Printer.ITEM_COLORS["separator"])
     self.write(self.m_hostname, Printer.ITEM_COLORS["hostname"])

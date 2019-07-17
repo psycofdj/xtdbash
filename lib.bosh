@@ -129,6 +129,19 @@ function __bosh_parse_deployment() {
   echo ${dep}
 }
 
+
+function __bosh_list_static_deployments() {
+  local l_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/
+  cat ${l_dir}/lib.bosh.deployments
+}
+
+
+function __bosh_list_static_instances() {
+  local l_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/
+  local l_deployment=$1; shift
+  cat ${l_dir}/lib.bosh.${l_deployment}.instances
+}
+
 function __bosh_list_envs() {
   bosh environments --json | jq -r '.Tables[].Rows[].alias'
 }
@@ -148,18 +161,23 @@ __bosh_complete_cli() {
       local env=$(__bosh_parse_env)
       if [ ! -z "${env}" ]; then
           COMPREPLY+=($(compgen -W "$(__bosh_list_deployments ${env})" -- ${cur}))
+      else
+        COMPREPLY+=($(compgen -W "$(__bosh_list_static_deployments ${env})" -- ${cur}))
       fi
   elif [ "${prev}" == "ssh" ]; then
-      local env=$(__bosh_parse_env)
       local dep=$(__bosh_parse_deployment)
-      if [ ! -z "${env}" ] && [ ! -z "${dep}" ]; then
-          COMPREPLY+=($(compgen -W "$(__bosh_list_instances ${env} ${dep})" -- ${cur}))
+      local env=$(__bosh_parse_env)
+      if [ ! -z "${dep}" ]; then
+          if [ ! -z "${env}" ]; then
+              COMPREPLY+=($(compgen -W "$(__bosh_list_instances ${env} ${dep})" -- ${cur}))
+          else
+            COMPREPLY+=($(compgen -W "$(__bosh_list_static_instances ${dep})" -- ${cur}))
+          fi
       fi
   else
     # Only split on newlines
     local IFS=$'\n'
-    # Call completion (note that the first element of COMP_WORDS is
-    # the executable itself)
+    # Call completion (note that the first element of COMP_WORDS is the executable itself
     COMPREPLY+=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} "${args[@]}"))
   fi
   return 0

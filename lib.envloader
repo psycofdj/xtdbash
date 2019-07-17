@@ -16,6 +16,10 @@ if [ -z "${BASE_PATH}" ]; then
    export BASE_PATH=${PATH}
 fi
 
+if [ -z "${DOLLAR}" ]; then
+   export DOLLAR='$'
+fi
+
 function __envloader_error() {
   local p_msg=$*;
   echo >&2 "$(tput setaf 1)envloader error$(tput sgr0): ${p_msg}"
@@ -32,9 +36,12 @@ function __envloader_verbose() {
 function __envloader_export_file() {
   local p_file=$1; shift
 
-  jq -r 'to_entries[] | "export \(.key)=\(.value | tostring | tojson);export \(.key)_origin=\(input_filename | tojson)"' ${p_file} 2>/dev/null || {
+  jq -r "to_entries[] | \"export \(.key)=\(.value | tostring | tojson);export \(.key)_origin=\(input_filename | tojson)\"" ${p_file} 2>/dev/null || {
     __envloader_error "malformed json file ${p_file}, ignored"
   }
+  # jq -r "to_entries[] | \"export \(.key)='\(.value | tostring)';export \(.key)_origin=\(input_filename | tojson)\"" ${p_file} 2>/dev/null || {
+  #   __envloader_error "malformed json file ${p_file}, ignored"
+  # }
 }
 
 

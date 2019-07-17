@@ -1,0 +1,6 @@
+alertmanager
+firehose
+grafana
+httpproxy
+nginx
+prometheus2
