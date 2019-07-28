@@ -1,0 +1,24 @@
+#!bin/bash
+
+#export GOCOMPLETE_BINS
+
+function gocomplete_add_bin() {
+  local l_bin=$1; shift
+
+  complete -o default -F __gocomplete_generic ${l_bin}
+}
+
+__gocomplete_generic() {
+  # All arguments except the first one
+  local args
+  args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+
+  # shellcheck disable=SC2034
+  local cur prev words cword split
+  _init_completion -s || return
+
+  # Only split on newlines
+  local IFS=$'\n'
+  # Call completion (note that the first element of COMP_WORDS is the executable itself
+  COMPREPLY+=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} "${args[@]}"))
+}
