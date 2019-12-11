@@ -3,26 +3,26 @@
 export CF_PROMPT_ENABLED=0
 
 
-function cf() {
-  local l_args=( "$@" )
-  local l_cf=$(which cf)
-  true >/tmp/cf-err
-  ${l_cf} "${l_args[@]}"  1> >(tee /tmp/cf-err)
-  # shellcheck disable=SC2181
-  if [ $? -ne 0 ]; then
-      grep -q "Authentication has expired" /tmp/cf-err && {
-        ${l_cf} login && {
-          ${l_cf} "${l_args[@]}"
-        }
-      }
-      grep -q "Not logged in" /tmp/cf-err && {
-        ${l_cf} login && {
-          ${l_cf} "${l_args[@]}"
-        }
-      }
+# function cf() {
+#   local l_args=( "$@" )
+#   local l_cf=$(which cf)
+#   true >/tmp/cf-err
+#   ${l_cf} "${l_args[@]}"  1> >(tee /tmp/cf-err)
+#   # shellcheck disable=SC2181
+#   if [ $? -ne 0 ]; then
+#       grep -q "Authentication has expired" /tmp/cf-err && {
+#         ${l_cf} login && {
+#           ${l_cf} "${l_args[@]}"
+#         }
+#       }
+#       grep -q "Not logged in" /tmp/cf-err && {
+#         ${l_cf} login && {
+#           ${l_cf} "${l_args[@]}"
+#         }
+#       }
 
-  fi
-}
+#   fi
+# }
 
 function __cf_get_org_space() {
   local l_file="$(readlink -m ${HOME}/.cf/config.json)"
