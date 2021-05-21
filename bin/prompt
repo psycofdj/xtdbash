@@ -82,7 +82,11 @@ class Printer:
         self.m_labels += [(c_label, l_color)]
 
   def write(self, p_text, p_color, p_blink = False):
-    self.m_count += len(p_text.decode("utf-8"))
+    # with python version 3 and above, the strings are already in unicode format
+    if sys.version_info[0] < 3:
+      self.m_count += len(p_text.decode("utf-8"))
+    else:
+      self.m_count += len(p_text)
     l_color = Printer.BASE_COLORS[p_color]
     if p_blink and (None == os.getenv("PROMTCMD_BLINK_OFF") or 0 == len(os.getenv("PROMTCMD_BLINK_OFF"))):
       sys.stdout.write("\033[%d;5m%s\033[0m" % (l_color, p_text))
