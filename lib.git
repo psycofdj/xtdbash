@@ -8,19 +8,37 @@ function __git_update_labels() {
     return 0
   }
 
+  local l_sha1=$(git rev-parse --short HEAD 2>/dev/null)
   local l_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  l_count=$(echo -n "${l_branch}" | wc -c)
-  if [ ${l_count} -gt 23 ]; then
-      l_branch="${l_branch:0:20}..."
+  local l_tag=$(git tag --points-at HEAD 2>/dev/null | tail -n1)
+  local l_name=""
+
+  if [ -n "${l_tag}" ]; then
+    if [ "${l_branch}" == "HEAD" ]; then
+      l_name="tag(${l_tag})"
+    else
+      l_name="${l_branch}-tag(${l_tag})"
+    fi
+  else
+    if [ "${l_branch}" == "HEAD" ]; then
+      l_name="${l_sha1}"
+    else
+      l_name="${l_branch}"
+    fi
   fi
 
-  if [ ! -z "${l_branch}" ]; then
+  l_count=$(echo -n "${l_name}" | wc -c)
+  if [ ${l_count} -gt 23 ]; then
+      l_name="${l_name:0:30}..."
+  fi
+
+  if [ ! -z "${l_name}" ]; then
       local l_color="lightgreen"
       test -z "$(git status -s --untracked-files=normal)" || \
           l_color="lightyellow"
       test -z "$(git status -s --untracked-files=no)"     || \
           l_color="lightred"
-      promptcmd_add_labels "g:${l_branch}|${l_color}"
+      promptcmd_add_labels "g:${l_name}|${l_color}"
   fi
 }
 
