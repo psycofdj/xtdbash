@@ -8,38 +8,38 @@ import os
 
 class Printer:
   BASE_COLORS = {
-    "black"        : 30,
-    "red"          : 31,
-    "green"        : 32,
-    "yellow"       : 33,
-    "blue"         : 34,
-    "magenta"      : 35,
-    "cyan"         : 36,
-    "white"        : 37,
-    "lightblack"   : 90,
-    "lightred"     : 91,
-    "lightgreen"   : 92,
-    "lightyellow"  : 93,
-    "lightblue"    : 94,
-    "lightmagenta" : 95,
-    "lightcyan"    : 96,
-    "lightwhite"   : 97
+    "black"        : 0,
+    "red"          : 1,
+    "green"        : 2,
+    "yellow"       : 3,
+    "blue"         : 4,
+    "magenta"      : 5,
+    "cyan"         : 6,
+    "white"        : 7,
+    "gray"         : 8,
+    "lightred"     : 9,
+    "lightgreen"   : 10,
+    "lightyellow"  : 11,
+    "lightblue"    : 12,
+    "lightmagenta" : 13,
+    "lightcyan"    : 14,
+    "lightwhite"   : 15
   }
 
   ITEM_COLORS = {
     "ret"           : { "ok" : "lightgreen", "ko" : "lightred" },
-    "separator"     : "lightgreen",
+    "separator"     : "22",
     "header"        : "lightgreen",
     "type"          : { "prod" : "lightred",
                         "rec"  : "lightmagenta",
                         "dev"  : "lightyellow",
                         "iaas" : "lightred" },
-    "hostname"      : "lightyellow",
-    "pwd"           : "lightcyan",
+    "hostname"      : "180",
+    "pwd"           : "180",
     "pwd_collapsed" : "cyan",
     "date"          : "lightred",
     "username"      : { "root" : "lightmagenta",
-                        "nonroot" : "lightyellow" }
+                        "nonroot" : "180" }
   }
 
   ITEMS = {
@@ -87,11 +87,14 @@ class Printer:
       self.m_count += len(p_text.decode("utf-8"))
     else:
       self.m_count += len(p_text)
-    l_color = Printer.BASE_COLORS[p_color]
-    if p_blink and (None == os.getenv("PROMTCMD_BLINK_OFF") or 0 == len(os.getenv("PROMTCMD_BLINK_OFF"))):
-      sys.stdout.write("\033[%d;5m%s\033[0m" % (l_color, p_text))
+    if p_color.isdigit():
+      l_color = int(p_color)
     else:
-      sys.stdout.write("\033[0;%dm%s\033[0m" % (l_color, p_text))
+      l_color = Printer.BASE_COLORS.get(p_color, "white")
+    if p_blink and (None == os.getenv("PROMTCMD_BLINK_OFF") or 0 == len(os.getenv("PROMTCMD_BLINK_OFF"))):
+      sys.stdout.write("\033[38;5;%d;5m%s\033[0m" % (l_color, p_text))
+    else:
+      sys.stdout.write("\033[38;5;%dm%s\033[0m" % (l_color, p_text))
 
   def write_header(self):
     self.write("\n%s " % Printer.ITEMS["header"], Printer.ITEM_COLORS["header"])
@@ -153,7 +156,7 @@ class Printer:
       else:
         self.write(c_text, c_color)
       if (c_text,c_color) != self.m_labels[-1]:
-        self.write("|", Printer.ITEM_COLORS["separator"])
+        self.write(",", Printer.ITEM_COLORS["separator"])
       # self.write(",", Printer.ITEM_COLORS["separator"])
     # self.write("|", Printer.ITEM_COLORS["separator"])
     if len(self.m_labels):
@@ -162,8 +165,8 @@ class Printer:
   def run(self):
     self.push_labels()
     self.write_header()
-    self.write_type()
-    self.write_sep()
+    # self.write_type()
+    # self.write_sep()
     self.write_host()
     self.write_sep()
     self.write_ret()

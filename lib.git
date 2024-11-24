@@ -33,12 +33,12 @@ function __git_update_labels() {
   fi
 
   if [ ! -z "${l_name}" ]; then
-      local l_color="lightgreen"
+      local l_color="40"
       test -z "$(git status -s --untracked-files=normal)" || \
-          l_color="lightyellow"
+          l_color="172"
       test -z "$(git status -s --untracked-files=no)"     || \
-          l_color="lightred"
-      promptcmd_add_labels "g:${l_name}|${l_color}"
+          l_color="197"
+      promptcmd_add_labels "git⌈${l_name}⌉|${l_color}"
   fi
 }
 

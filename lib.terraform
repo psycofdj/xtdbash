@@ -1,0 +1,37 @@
+#!/bin/bash
+
+export TERRAFORM_PROMPT_ENABLED=0
+
+
+function __terraform_update_labels() {
+  test ${TERRAFORM_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
+  test ! -f .terraform/environment && {
+    return 0
+  }
+
+  local l_color="lightgray"
+  local l_workspace=$(cat .terraform/environment)
+
+  if [[ "${l_workspace}" == *prd* ]]; then
+      l_color="196"
+  elif [[ "${l_workspace}" == *stg* ]]; then
+      l_color="202"
+  elif [[ "${l_workspace}" == *sbx* ]]; then
+      l_color="120"
+  fi
+
+  promptcmd_add_labels "tws⌈${l_workspace}⌉|${l_color}"
+}
+
+
+function terraform_enable_prompt() {
+  TERRAFORM_PROMPT_ENABLED=1
+  promptcmd_push "__terraform_update_labels"
+}
+
+function terraform_disable_prompt() {
+  TERRAFORM_PROMPT_ENABLED=0
+}
