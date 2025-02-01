@@ -99,6 +99,8 @@ function xtdbash_init() {
         xtdbash_init "cdevent" || return 1
     elif [ "${c_lib}" == "terraform" ]; then
         xtdbash_init "promptcmd" || return 1
+    elif [ "${c_lib}" == "azure" ]; then
+        xtdbash_init "promptcmd" || return 1
     elif [ "${c_lib}" == "kube" ]; then
         xtdbash_init "promptcmd" || return 1
     fi

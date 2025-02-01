@@ -1,0 +1,40 @@
+#!/bin/bash
+
+export AZURE_PROMPT_ENABLED=0
+
+
+function __azure_update_labels() {
+  test ${AZURE_PROMPT_ENABLED} -eq 0 && {
+    return 0
+  }
+
+  test ! -f ~/.azure/clouds.config && {
+    return 0
+  }
+
+  local l_subID=$(awk '/subscription/{print $3}' < ~/.azure/clouds.config)
+  local l_subName=$(jq ".subscriptions[] | select(.id == \"${l_subID}\") | .name" < ~/.azure/azureProfile.json)
+  local l_color="lightgray"
+
+  if [[ "${l_subName}" == *SAASOFFICE-1* ]]; then
+      l_subName="prd"
+      l_color="196"
+  elif [[ "${l_subName}" == *staging* ]]; then
+      l_subName="stg"
+      l_color="202"
+  elif [[ "${l_subName}" == *sandbox* ]]; then
+      l_subName="sbx"
+      l_color="120"
+  fi
+
+  promptcmd_add_labels "az⌈${l_subName}⌉|${l_color}"
+}
+
+function azure_enable_prompt() {
+  AZURE_PROMPT_ENABLED=1
+  promptcmd_push "__azure_update_labels"
+}
+
+function azure_disable_prompt() {
+  AZURE_PROMPT_ENABLED=0
+}
