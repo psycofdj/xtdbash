@@ -2,18 +2,29 @@
 
 export KUBE_PROMPT_ENABLED=0
 
+function __kube_update_config() {
+    local l_base
+
+    l_base="$(find ~/.kube/ -maxdepth 1 -type f -not -name config | tr "\n" ":")"
+    export KUBECONFIG="${l_base}${HOME}/.kube/config"
+}
 
 function __kube_update_labels() {
   test ${KUBE_PROMPT_ENABLED} -eq 0 && {
     return 0
   }
 
+  local l_ctx
+  local l_color="26"
+
+  l_ctx=$(kubectl config current-context) || {
+      return 0
+  }
   test ! -f ~/.kube/config && {
     return 0
   }
 
-  local l_color="lightgray"
-  local l_ctx=$(cat ~/.kube/config | yq .current-context | sed -e 's/-dp//' -e 's/-aks//')
+  # local l_ctx=$(cat ~/.kube/config | yq .current-context | sed -e 's/-dp//' -e 's/-aks//' -e 's/-kind//')
 
   if [[ "${l_ctx}" == *prd* ]]; then
       l_color="199"
@@ -30,6 +41,7 @@ function __kube_update_labels() {
 function kube_enable_prompt() {
   KUBE_PROMPT_ENABLED=1
   promptcmd_push "__kube_update_labels"
+  promptcmd_push "__kube_update_config"
 }
 
 function kube_disable_prompt() {

@@ -12,7 +12,7 @@ function __terraform_update_labels() {
     return 0
   }
 
-  local l_color="lightgray"
+  local l_color="196"
   local l_workspace=$(cat .terraform/environment)
 
   if [[ "${l_workspace}" == *prd* ]]; then
